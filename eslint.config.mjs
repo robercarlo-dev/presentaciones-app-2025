@@ -5,9 +5,18 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+  {
+    files: ["**/*.css"],
+    languageOptions: {
+      parser: require.resolve("postcss-eslint-parser"),
+    },
+    rules: {
+      "css/unknownAtRules": ["warn", {
+        ignoreAtRules: ["theme"]
+      }]
+    }
+  },
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

@@ -6,7 +6,7 @@ import ListaCantos from '../components/ListaCantos';
 import ListasPresentaciones from '../components/ListasPresentaciones';
 
 export default function PaginaProtegida() {
-  const { loading, isAuthenticated } = useUser();
+  const { loading, isAuthenticated, authReady } = useUser();
   const router = useRouter(); // <-- Uso correcto del router aquí
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function PaginaProtegida() {
     }
   }, [loading, isAuthenticated, router]);
 
-  if (loading) {
+  if (!authReady || loading) {
     // Muestra 'Cargando...' mientras el contexto de Firebase/Supabase se inicializa.
     return <p>Cargando...</p>;
   }

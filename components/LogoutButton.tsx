@@ -4,9 +4,9 @@ import { useUser } from '@/context/UserContext';
 import { Icon } from './SvgIcons';
 
 export default function LogoutButton() {
-  const { user, isAuthenticated, loading, signOut } = useUser();
+  const { user, isAuthenticated, loading, signOut, authReady, } = useUser();
 
-  if (loading) return <div>Cerrando sesión…</div>;
+  if (!authReady || loading) return <div>Cargando usuario…</div>;
 
   if (!isAuthenticated) {
     return (

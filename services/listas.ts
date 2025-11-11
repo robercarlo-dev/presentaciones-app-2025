@@ -10,10 +10,13 @@ export async function guardarListaConCantos(
   const { data: listaData, error: listaError } = await supabase
     .from('listas')
     .insert([{ nombre, usuario_id: usuarioId }])
-    .select()
+    .select("id")
     .single();
 
-  if (listaError || !listaData) throw listaError;
+  if (listaError || !listaData) {
+    console.error("Error al insertar lista:", listaError);
+    throw listaError; // Re-lanza el error para que el componente lo maneje
+  }
 
   const listaId = listaData.id;
 
@@ -27,39 +30,15 @@ export async function guardarListaConCantos(
     .from('lista_cantos')
     .insert(listaCantos);
 
-  if (cantosError) throw cantosError;
+  if (cantosError) {
+    console.error("Error al insertar lista_cantos:", cantosError);
+    // Considera eliminar la lista si falla la inserción en lista_cantos
+    await supabase.from("listas").delete().eq("id", listaId);
+    throw cantosError;  // Re-lanza el error
+}
 
   return listaId;
 }
-
-// export async function eliminarListaConConfirmacion(
-//   listaId: string,
-//   listas: Lista[],
-//   listaActivaId: string,
-//   setListaActivaId: (id: string) => void
-// ) {
-//     console.log('Eliminando lista con ID:', listaId);
-//     const confirmar = confirm(
-//       '¿Deseas eliminar esta lista también de la base de datos?'
-//     );
-//     if (!confirmar) return;
-  
-//     const { error } = await supabase
-//       .from('listas')
-//       .delete()
-//       .eq('id', listaId);
-  
-//     if (error) throw error;
-
-//     // Si la lista eliminada era la activa, establecer otra lista como activa
-//     if (listaId === listaActivaId && listas.length > 0) {
-//       const nuevaListaActiva = listas.find((lista) => lista.id !== listaId);
-//       if (nuevaListaActiva) {
-//         setListaActivaId(nuevaListaActiva.id);
-//       }
-//     }
-//   }
-
 
 export async function obtenerListasDelUsuario(usuarioId: string): Promise<Lista[]> {
     const { data, error } = await supabase

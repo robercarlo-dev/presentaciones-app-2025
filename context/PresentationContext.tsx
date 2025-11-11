@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useRef, useState, ReactNode } from "react";
+import { createContext, useContext, useMemo, useRef, useState, ReactNode, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/context/UserContext";
 import { fetchListasConCantos } from "@/lib/queries/listas";
@@ -12,10 +12,24 @@ import { guardarListaConCantos } from "@/services/listas";
 
 const PresentationContext = createContext<PresentationContextType | undefined>(undefined);
 
-const FLUSH_DELAY_MS = 5000; // debounce por lista
+const FLUSH_DELAY_MS = 5000;
+
+const DRAFTS_KEY_PREFIX = "presentacion:drafts:";
+
+const storageKeyForUser = (uid?: string) => `${DRAFTS_KEY_PREFIX}${uid ?? "anon"}`;
+
+function safeParseDrafts(raw: string | null): ListaPresentacion[] {
+  if (!raw) return [];
+  try {
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter((l) => l && typeof l.id === "string" && typeof l.nombre === "string" && Array.isArray(l.cantos));
+  } catch {
+    return [];
+  }
+}
 
 export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Borradores locales
   const [drafts, setDrafts] = useState<ListaPresentacion[]>([]);
   const [selectedCantos, setSelectedCantos] = useState<Canto[]>([]);
   const [listaActivaId, setListaActivaId] = useState<string | null>(null);
@@ -24,6 +38,29 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const { user, isAuthenticated } = useUser();
   const usuarioId = isAuthenticated && user?.id ? user.id : undefined;
+
+  useEffect(() => {
+    const key = storageKeyForUser(usuarioId);
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+      const loaded = safeParseDrafts(raw);
+      setDrafts(loaded);
+    } catch (e) {
+      console.error("No se pudieron cargar borradores desde localStorage", e);
+      setDrafts([]);
+    }
+  }, [usuarioId]);
+
+  useEffect(() => {
+    const key = storageKeyForUser(usuarioId);
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(key, JSON.stringify(drafts));
+      }
+    } catch (e) {
+      console.error("No se pudieron guardar borradores en localStorage", e);
+    }
+  }, [drafts, usuarioId]);
 
   const { data: listasServer = [] } = useQuery({
     queryKey: ["listas", usuarioId],
@@ -42,17 +79,17 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const esBorrador = (id: string) => drafts.some((l) => l.id === id);
 
-  // Actualiza la cache de React Query localmente para una lista guardada
+
   const updateListaEnCache = (id: string, updater: (l: ListaPresentacion) => ListaPresentacion) => {
     qc.setQueryData<ListaPresentacion[]>(["listas", usuarioId], (old = []) =>
       old.map((l) => (l.id === id ? updater({ ...l, cantos: [...l.cantos] }) : l))
     );
   };
 
-  // Programa un flush debounced a la DB para una lista guardada
+
   const scheduleFlush = (id: string) => {
     if (!usuarioId) return;
-    if (esBorrador(id)) return; // borradores no se flushean: se guardan con Guardar
+    if (esBorrador(id)) return; 
 
     const timers = timersRef.current;
     const prev = timers.get(id);
@@ -66,7 +103,6 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
       const cantoIds = lista.cantos.map((c) => c.id);
       const nombre = lista.nombre;
 
-      // 1 llamada a RPC con snapshot final
       const { error } = await supabase.rpc("app_actualizar_lista", {
         p_lista_id: id,
         p_nuevo_nombre: nombre,
@@ -74,10 +110,8 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
       });
       if (error) {
         console.error("Error al aplicar cambios:", error);
-        // Revalida para recuperar estado de la DB
         qc.invalidateQueries({ queryKey: ["listas", usuarioId] });
       } else {
-        // Revalida para confirmar
         qc.invalidateQueries({ queryKey: ["listas", usuarioId] });
       }
       timers.delete(id);
@@ -105,7 +139,7 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
       setListaActivaId((prev) => (prev === id ? (listas[0]?.id ?? null) : prev));
       return;
     }
-    // Lista guardada: borrar en DB (1 llamada)
+    
     supabase
       .from("listas")
       .delete()
@@ -178,13 +212,29 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
     if (!usuarioId) throw new Error("Usuario no autenticado");
     const draft = drafts.find((l) => l.id === id);
     if (!draft) throw new Error("No se encontró el borrador");
-    const cantoIds = draft.cantos.map((c) => c.id);
+  
+    const nuevaListaId = await guardarListaConCantos(
+      draft.nombre,
+      usuarioId,
+      draft.cantos.map((c) => c.id)
+    );
 
-    const nuevaListaId = await guardarListaConCantos(draft.nombre, usuarioId, cantoIds);
-
-    setDrafts((prev) => prev.filter((l) => l.id !== id));
-    await qc.invalidateQueries({ queryKey: ["listas", usuarioId] });
+    
+    setDrafts((prev) => prev.filter((l) => l.id !== id));  
+    
+    qc.setQueryData<ListaPresentacion[]>(["listas", usuarioId], (old = []) => [
+      ...old,
+      {
+        id: nuevaListaId,
+        nombre: draft.nombre,
+        cantos: draft.cantos,
+        isSaved: true,
+      },
+    ]);
+  
+    
     setListaActivaId(nuevaListaId);
+  
     return nuevaListaId;
   };
 

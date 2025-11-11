@@ -10,7 +10,6 @@ import { restrictToParentElement } from '@dnd-kit/modifiers';
 import DraggableItem from './DraggableItem';
 import { Icon } from './SvgIcons';
 import PptxGenJS from 'pptxgenjs';
-import { useRouter } from "next/navigation";
 
 type Props = {
   listaId: string;
@@ -23,7 +22,6 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
   const [nuevoNombre, setNuevoNombre] = useState(lista?.nombre || '');
   // const [usuarioId, setUsuarioId] = useState<string | null>(null);
   const { user, isAuthenticated } = useUser();
-  const router = useRouter();
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -59,13 +57,9 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
     }
     try {
       const newId = await guardarListaBorrador(listaId);
-      // Si listaId viene de la URL, navega al nuevo id
-      router.replace(`/listas/${newId}`);
-      // Si listaId viene del estado del padre, setListaActivaId:
-      setListaActivaId(newId);
       alert("Lista guardada correctamente.");
-    } catch (error) {
-      console.error("Error al guardar lista:", error);
+    } catch (e) {
+      console.error("Error al guardar lista:", e);
     }
   };
 
