@@ -1,0 +1,14 @@
+[
+    {
+      "id": "lista1",
+      "nombre": "Domingo Familiar",
+      "usuarioId": "user1",
+      "cantos": [1, 2, 3]
+    },
+    {
+      "id": "lista2",
+      "nombre": "Reunión Especial",
+      "usuarioId": "user2",
+      "cantos": [4, 5]
+    }
+  ]
