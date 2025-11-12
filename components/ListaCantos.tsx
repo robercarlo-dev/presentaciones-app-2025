@@ -4,12 +4,16 @@ import { useState, useEffect } from 'react';
 import ItemCanto from './ItemCanto';
 import { usePresentation } from '../context/PresentationContext';
 import { useUser } from '@/context/UserContext';
-import { obtenerCantos, obtenerFavoritos } from '@/services/cantos';
+import { obtenerFavoritos } from '@/services/cantos';
 import { Canto } from '@/types/supabase';
 import { Icon } from './SvgIcons';
 import { useMediaQuery } from 'react-responsive';
 
-export default function ListaCantos() {
+interface ListaCantosProps {
+  cantosData: Canto[];
+}
+
+export default function ListaCantos({ cantosData }: ListaCantosProps) {
   const [cantos, setCantos] = useState<Canto[]>([]);
   const [todosLosCantos, setTodosLosCantos] = useState<Canto[]>([]);
   const [cantoABuscar, setCantoABuscar] = useState<string>('');
@@ -21,55 +25,41 @@ export default function ListaCantos() {
   const [noResults, setNoResults] = useState(false);
 
   const { favoritos, setFavoritos } = usePresentation();
-  const { user, loading } = useUser();
+  const { user, loading, authReady, isAuthenticated } = useUser();
   const is2XLDesktop = useMediaQuery({ minWidth: 1536 });
 
   const totalPaginas = Math.ceil(cantos.length / cantosPorPagina);
   const inicio = (paginaActual - 1) * cantosPorPagina;
   const cantosPaginados = cantos.slice(inicio, inicio + cantosPorPagina);
 
-  // Cargar cantos al iniciar
+  /** ✅ Cargar cantos al iniciar */
   useEffect(() => {
-    const cargarCantos = async () => {
-      setIsLoading(true);
-      try {
-        const data = await obtenerCantos();
-        if (data) {
-          setTodosLosCantos(data);
-          setCantos(data);
-          setNoResults(data.length === 0);
-        } else {
-          console.error('No se pudieron cargar los cantos');
-          setNoResults(true);
-        }
-      } catch (error) {
-        console.error('Error al cargar cantos:', error);
-        setNoResults(true);
-      } finally {
-        setIsLoading(false);
-      }
+    const cargarCantos = () => {
+      setTodosLosCantos(cantosData);
+      setCantos(cantosData);
+      setNoResults(cantosData.length === 0);
+      setIsLoading(false);
     };
-  
+
     cargarCantos();
   }, []);
 
-  // Cargar favoritos cuando el usuario esté listo
+  /** ✅ Cargar favoritos cuando el usuario esté listo */
   useEffect(() => {
-    const cargarFavoritos = async () => {
-      if (!loading && user) {
+    if (!loading && user) {
+      const cargarFavoritos = async () => {
         try {
           const favoritosIds = await obtenerFavoritos(user.id);
           setFavoritos(favoritosIds);
         } catch (error) {
           console.error('Error al cargar favoritos:', error);
         }
-      }
-    };
-
-    cargarFavoritos();
+      };
+      cargarFavoritos();
+    }
   }, [user, loading, setFavoritos]);
 
-  // Ajustar cantos por página según altura disponible
+  /** ✅ Ajustar cantos por página según altura disponible */
   useEffect(() => {
     const ajustarCantosPorPagina = () => {
       const alturaDisponible = window.innerHeight - 90;
@@ -89,21 +79,24 @@ export default function ListaCantos() {
     };
   }, [is2XLDesktop]);
 
-  // Actualizar lista si se está mostrando favoritos y cambian
+  /** ✅ Actualizar lista si se está mostrando favoritos */
   useEffect(() => {
-    if (mostrarFavoritos && user && todosLosCantos.length > 0 && favoritos.length > 0) {
+    if (mostrarFavoritos && user && todosLosCantos.length > 0) {
       const cantosFavoritos = todosLosCantos.filter(canto => favoritos.includes(canto.id));
       setCantos(cantosFavoritos);
       setPaginaActual(1);
+      setNoResults(cantosFavoritos.length === 0);
     }
   }, [favoritos, mostrarFavoritos, todosLosCantos, user]);
 
+  /** ✅ Funciones */
   const filtrarFavoritos = () => {
     setMostrarFavoritos(true);
     if (todosLosCantos.length > 0 && user) {
       const cantosFavoritos = todosLosCantos.filter(canto => favoritos.includes(canto.id));
       setCantos(cantosFavoritos);
       setPaginaActual(1);
+      setNoResults(cantosFavoritos.length === 0);
     }
   };
 
@@ -115,12 +108,12 @@ export default function ListaCantos() {
     setPaginaActual(1);
     setNoResults(cantosFiltrados.length === 0);
   };
-  
 
   const mostrarTodos = () => {
     setMostrarFavoritos(false);
     setCantos(todosLosCantos);
     setPaginaActual(1);
+    setNoResults(todosLosCantos.length === 0);
   };
 
   return (
@@ -132,6 +125,7 @@ export default function ListaCantos() {
         Cantos disponibles
       </h2>
 
+      {/* Barra de búsqueda y botones */}
       <div className="flex">
         <form
           onSubmit={(e) => {
@@ -164,7 +158,7 @@ export default function ListaCantos() {
         </div>
       </div>
 
-      
+      {/* Lista de cantos */}
       {isLoading ? (
         <p className="text-background text-center mt-10">Cargando cantos...</p>
       ) : noResults ? (
@@ -179,7 +173,7 @@ export default function ListaCantos() {
         </ul>
       )}
 
-
+      {/* Paginación */}
       <div className="flex justify-center items-center gap-4 2xl:mt-2">
         <button
           onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}

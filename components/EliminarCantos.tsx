@@ -15,14 +15,14 @@ export default function EliminarCantos() {
   const [nuevasEstrofas, setNuevasEstrofas] = useState<string[]>([]);
   const [cantidadEstrofas, setCantidadEstrofas] = useState(1);
 
-  useEffect(() => {
-    const cargar = async () => {
-      const data = await obtenerCantos();
-      setCantos(data);
-    };
+//   useEffect(() => {
+//     const cargar = async () => {
+//       const data = await obtenerCantos();
+//       setCantos(data);
+//     };
 
-    cargar();
-  }, []);
+//     cargar();
+//   }, []);
 
     const handleEliminarCanto = async (cantoId: string) => {
         console.log("Eliminando canto con ID:", cantoId);

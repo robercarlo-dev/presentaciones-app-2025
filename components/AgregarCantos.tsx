@@ -12,14 +12,14 @@ export default function ModificarCantos() {
   const [nuevasEstrofas, setNuevasEstrofas] = useState<string[]>([]);
   const [cantidadEstrofas, setCantidadEstrofas] = useState(1);
 
-  useEffect(() => {
-    const cargar = async () => {
-      const data = await obtenerCantos();
-      setCantos(data);
-    };
+//   useEffect(() => {
+//     const cargar = async () => {
+//       const data = await obtenerCantos();
+//       setCantos(data);
+//     };
 
-    cargar();
-  }, []);
+//     cargar();
+//   }, []);
 
     const handleCrearCanto = async () => {
 

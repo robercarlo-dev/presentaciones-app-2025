@@ -1,31 +1,31 @@
 'use client';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 import ListaCantos from '../components/ListaCantos';
 import ListasPresentaciones from '../components/ListasPresentaciones';
+import { useCantos } from '@/hooks/useCantos';
 
 export default function PaginaProtegida() {
   const { loading, isAuthenticated, authReady } = useUser();
-  const router = useRouter(); // <-- Uso correcto del router aquí
+  const router = useRouter();
+  const { data: cantos, isPending } = useCantos();
 
   useEffect(() => {
-    // Cuando loading sea false, si no está autenticado, redirige.
     if (!loading && !isAuthenticated) {
       router.push('/login');
     }
   }, [loading, isAuthenticated, router]);
 
-  if (!authReady || loading) {
-    // Muestra 'Cargando...' mientras el contexto de Firebase/Supabase se inicializa.
-    return <p>Cargando...</p>;
+  if (!authReady || loading || isPending) {
+    return <p className='mt-20 text-primary'>Cargando...</p>;
   }
   
   // Solo renderiza el contenido protegido si loading es false Y isAuthenticated es true
-  if (isAuthenticated) {
+  if (isAuthenticated ) {
     return (
       <div className="flex gap-10 justify-center m-4 bg-background">
-        <ListaCantos />
+        <ListaCantos cantosData={cantos || []}/>
         <ListasPresentaciones />
       </div>
     );

@@ -6,11 +6,8 @@ import AgregarCantos from './AgregarCantos';
 import ModificarCantos from './ModificarCantos';
 import EliminarCantos from './EliminarCantos';
 
-
 export default function ManejoCantos() {
   const [eleccion, setEleccion] = useState<'agregar' | 'modificar' | 'eliminar'>('modificar');
-
-
 
     return (
         <div className="w-19/20 mx-auto mt-14 flex flex-wrap bg-primary content-start rounded-xl overflow-auto" style={{ height: `calc(100vh - 90px)`, minHeight: '700px', }}>

@@ -1,3 +1,4 @@
+// services/cantos.ts
 import { supabase } from '@/lib/supabaseClient';
 import { Canto } from '@/types/supabase';
 
@@ -7,8 +8,8 @@ export async function obtenerCantos(): Promise<Canto[]> {
     .select('*')
     .order('titulo', { ascending: true });
 
-  if (error) {
-    console.error('Error al obtener cantos:', error.message);
+  if (error || !data) {
+    console.error('Error al obtener cantos:', error?.message);
     return [];
   }
 
@@ -19,18 +20,17 @@ export async function selectCanto(cantoId: string): Promise<Canto[]> {
   const { data, error } = await supabase
     .from('cantos')
     .select('*')
-    .eq('id', cantoId)
-  
-    if (error) {
-      console.error('Error al obtener cantos:', error.message);
-      return [];
-    } 
+    .eq('id', cantoId);
+
+  if (error) {
+    console.error('Error al obtener cantos:', error.message);
+    return [];
+  }
 
   return data as Canto[];
 }
 
 export async function crearCanto(canto: Partial<Canto>): Promise<Canto> {
-  console.log('Creando canto:', canto);
   const { data, error } = await supabase
     .from('cantos')
     .insert(canto)
@@ -44,35 +44,34 @@ export async function crearCanto(canto: Partial<Canto>): Promise<Canto> {
   return data as Canto;
 }
 
-export async function actualizarCanto(cantoId: string, cambios: Partial<Canto>): Promise<void> {
-  const esUUIDValido = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+// DEVUELVE el registro actualizado
+export async function actualizarCanto(cantoId: string, cambios: Partial<Canto>): Promise<Canto> {
+  const esUUIDValido = (id: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   if (!esUUIDValido(cantoId)) {
     throw new Error('ID de canto inválido: ' + cantoId);
   }
-  const { error } = await supabase
+
+  const { data, error } = await supabase
     .from('cantos')
     .update(cambios)
     .eq('id', cantoId)
-    .select();
+    .select()
+    .single(); // <- importante para obtener una fila
 
   if (error) {
     throw new Error('Error al actualizar el canto: ' + error.message);
   }
+
+  return data as Canto;
 }
 
 export async function eliminarCanto(cantoId: string): Promise<void> {
-  const { data, error } = await supabase
-    .from('cantos')
-    .delete()
-    .eq('id', cantoId);
-
+  const { error } = await supabase.from('cantos').delete().eq('id', cantoId);
   if (error) {
     throw new Error('Error al eliminar el canto: ' + error.message);
   }
-
-  console.log('Canto actualizado:', data);
 }
-
 
 export async function obtenerFavoritos(userId: string) {
   const { data, error } = await supabase
@@ -81,20 +80,14 @@ export async function obtenerFavoritos(userId: string) {
     .eq('user_id', userId);
 
   if (error) throw error;
-  return data.map(f => f.canto_id);
+  return data.map((f) => f.canto_id);
 }
 
 export async function agregarFavorito(userId: string, cantoId: string) {
-  console.log("Agregando favorito:", { userId, cantoId });
   const { error } = await supabase
     .from('favoritos')
     .insert([{ user_id: userId, canto_id: cantoId }]);
-
-    if (error) {
-      console.error("Error inserting favorito:", error);
-      throw error;
-    }
-  console.log("Favorito agregado:", { userId, cantoId });
+  if (error) throw error;
 }
 
 export async function quitarFavorito(userId: string, cantoId: string) {
@@ -102,17 +95,5 @@ export async function quitarFavorito(userId: string, cantoId: string) {
     .from('favoritos')
     .delete()
     .match({ user_id: userId, canto_id: cantoId });
-
   if (error) throw error;
-}
-
-async function checkAuthStatus() {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error) {
-    console.error('Error fetching user:', error);
-  } else if (user) {
-    console.log('User is authenticated:', user);
-  } else {
-    console.log('No user is authenticated');
-  }
 }

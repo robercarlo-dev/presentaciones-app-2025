@@ -5,7 +5,7 @@ import MenuConfiguraciones from '../components/MenuConfiguraciones';
 import localFont from 'next/font/local';
 import HojaPreview from '@/components/HojaPreview';
 import { Toaster } from 'react-hot-toast';
-import RootProviders from './providers';
+import RootProvider from './RootProvider';
 
 const gotham = localFont({
   src: [
@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={gotham.variable}>
       <body className="font-sans">
-        <RootProviders>
+        <RootProvider>
             <header>
               <MenuConfiguraciones />
             </header>
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 },
               }}
             />
-        </RootProviders>
+        </RootProvider>
       </body>
     </html>
   );
