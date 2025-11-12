@@ -8,6 +8,7 @@ import { obtenerFavoritos } from '@/services/cantos';
 import { Canto } from '@/types/supabase';
 import { Icon } from './SvgIcons';
 import { useMediaQuery } from 'react-responsive';
+import BuscadorCantos from './BuscadorCantos';
 
 interface ListaCantosProps {
   cantosData: Canto[];
@@ -127,26 +128,7 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
 
       {/* Barra de búsqueda y botones */}
       <div className="flex">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            buscarCantoPorTitulo(cantoABuscar);
-          }}
-          className="flex flex-col gap-4 w-full mx-auto bg-primary self-baseline"
-        >
-          <div className="flex mx-auto my-4 gap-2 w-100 justify-around items-center rounded-lg bg-background">
-            <input
-              placeholder="Título de canto para buscar"
-              type="text"
-              value={cantoABuscar}
-              onChange={(e) => setCantoABuscar(e.target.value)}
-              className="bg-background w-100 text-secondary rounded-lg p-2"
-            />
-            <button type="submit" className="text-white w-10 rounded hover:opacity-50">
-              <Icon name="search" size="lg" className="fill-secondary text-transparent hover:opacity-50" />
-            </button>
-          </div>
-        </form>
+        <BuscadorCantos value={cantoABuscar} onChange={setCantoABuscar} onSearch={buscarCantoPorTitulo} />
 
         <div className="flex gap-3 my-4 text-center">
           <button title="todos" onClick={mostrarTodos}>

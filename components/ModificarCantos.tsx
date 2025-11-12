@@ -8,6 +8,7 @@ import { actualizarCanto } from '@/services/cantos';
 import { Canto } from '@/types/supabase';
 import toast from 'react-hot-toast';
 import RemainingHeightDiv from '@/components/RemainingHeightDiv';
+import BuscadorCantos from './BuscadorCantos';
 
 export default function ModificarCantos() {
   const { user } = useUser();
@@ -111,31 +112,7 @@ export default function ModificarCantos() {
         Modificar Cantos Existentes
       </h1>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          buscarCantoPorTitulo(cantoABuscar);
-        }}
-        className="flex flex-col gap-4 w-full mx-auto bg-primary self-baseline"
-      >
-        <div className="flex mx-4 justify-around items-center pb-1">
-          <div>
-            <label className="text-background mr-2">Título del Canto a Modificar:</label>
-            <input
-              type="text"
-              value={cantoABuscar}
-              onChange={(e) => setCantoABuscar(e.target.value)}
-              className="bg-background border border-primary w-100 text-secondary p-2 rounded-lg mt-1"
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-secondary text-white px-4 py-2 w-40 self-end rounded hover:opacity-50"
-          >
-            Buscar Canto
-          </button>
-        </div>
-      </form>
+      <BuscadorCantos value={cantoABuscar} onChange={setCantoABuscar} onSearch={buscarCantoPorTitulo} placeholder='Título del Canto a Modificar' />
 
       {cantosSeleccionados.length > 1 && (
         <div className="text-background text-center w-5/10 pt-3 m-auto">
