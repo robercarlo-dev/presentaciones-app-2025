@@ -51,10 +51,6 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
   };
 
   const handleGuardar = async () => {
-    if (!user || !isAuthenticated) {
-      alert("Usuario no autenticado.");
-      return;
-    }
     try {
       const newId = await guardarListaBorrador(listaId);
       alert("Lista guardada correctamente.");
@@ -166,35 +162,28 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
           </h3>
         )}
         <div className="flex gap-2 item-center justify-end">
-        {lista.cantos.length > 0 && (
-          <button onClick={handleDescargar}>
-            <Icon name="download" size="xxxl" className="fill-background text-transparent drop-shadow-xl hover:opacity-50" />
-          </button>
-        )
-
-        }
-        {!lista.isSaved && (
-            <button
-            onClick={handleGuardar}
-          >
-              <Icon name="guardar" size="xxxl" className="fill-background text-transparent drop-shadow-xl hover:opacity-50" />
-          </button>
-          )}
-          {!editandoNombre && (
-            <button
-              onClick={() => setEditandoNombre(true)}
-              className="text-blue-500 hover:underline"
-            >
-             <Icon name="editar" size="xxxl" className="fill-background text-transparent drop-shadow-xl hover:opacity-50" />
+          {lista.cantos.length > 0 && (
+            <button onClick={handleDescargar} className='text-background text-xs hover:cursor-pointer hover:opacity-50'>
+              <Icon name="download" size="xxxl" className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
+              Descargar
             </button>
           )}
-          <button
-            onClick={handleEliminar}
-            className="text-red-500 hover:underline"
-          >
-            <Icon name="trash" size="xxxl" className="fill-background text-transparent drop-shadow-xl hover:opacity-50" />
-          </button>    
-
+          {!lista.isSaved && (
+            <button onClick={handleGuardar} className='text-background text-xs hover:cursor-pointer hover:opacity-50'>
+              <Icon name="guardar" size="xxxl" className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl " />
+              Guardar
+            </button>
+          )}
+          {!editandoNombre && (
+            <button onClick={() => setEditandoNombre(true)} className="text-background text-xs hover:cursor-pointer hover:opacity-50">
+             <Icon name="editar" size="xxxl" className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
+            Editar
+            </button>
+          )}
+          <button onClick={handleEliminar}className="text-background text-xs hover:cursor-pointer hover:opacity-50">
+            <Icon name="trash" size="xxxl" className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
+            Eliminar
+          </button>  
         </div>
       </div>
 

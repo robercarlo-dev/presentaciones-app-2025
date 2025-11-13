@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ItemCanto from './ItemCanto';
 import { usePresentation } from '../context/PresentationContext';
 import { useUser } from '@/context/UserContext';
@@ -9,6 +9,7 @@ import { Canto } from '@/types/supabase';
 import { Icon } from './SvgIcons';
 import { useMediaQuery } from 'react-responsive';
 import BuscadorCantos from './BuscadorCantos';
+import Pagination from './Pagination';
 
 interface ListaCantosProps {
   cantosData: Canto[];
@@ -26,7 +27,7 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
   const [noResults, setNoResults] = useState(false);
 
   const { favoritos, setFavoritos } = usePresentation();
-  const { user, loading, authReady, isAuthenticated } = useUser();
+  const { user } = useUser();
   const is2XLDesktop = useMediaQuery({ minWidth: 1536 });
 
   const totalPaginas = Math.ceil(cantos.length / cantosPorPagina);
@@ -35,30 +36,18 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
 
   /** ✅ Cargar cantos al iniciar */
   useEffect(() => {
-    const cargarCantos = () => {
       setTodosLosCantos(cantosData);
       setCantos(cantosData);
       setNoResults(cantosData.length === 0);
       setIsLoading(false);
-    };
+  }, [cantosData]);
 
-    cargarCantos();
-  }, []);
-
-  /** ✅ Cargar favoritos cuando el usuario esté listo */
+  /** ✅ Cargar favoritos cuando el componente monte */
   useEffect(() => {
-    if (!loading && user) {
-      const cargarFavoritos = async () => {
-        try {
-          const favoritosIds = await obtenerFavoritos(user.id);
-          setFavoritos(favoritosIds);
-        } catch (error) {
-          console.error('Error al cargar favoritos:', error);
-        }
-      };
-      cargarFavoritos();
+    if (user) {
+      obtenerFavoritos(user.id).then(setFavoritos).catch(console.error);
     }
-  }, [user, loading, setFavoritos]);
+  }, [user, setFavoritos]);
 
   /** ✅ Ajustar cantos por página según altura disponible */
   useEffect(() => {
@@ -82,40 +71,40 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
 
   /** ✅ Actualizar lista si se está mostrando favoritos */
   useEffect(() => {
-    if (mostrarFavoritos && user && todosLosCantos.length > 0) {
+    if (mostrarFavoritos && todosLosCantos.length > 0) {
       const cantosFavoritos = todosLosCantos.filter(canto => favoritos.includes(canto.id));
       setCantos(cantosFavoritos);
       setPaginaActual(1);
       setNoResults(cantosFavoritos.length === 0);
     }
-  }, [favoritos, mostrarFavoritos, todosLosCantos, user]);
+  }, [favoritos, mostrarFavoritos, todosLosCantos]);
 
-  /** ✅ Funciones */
-  const filtrarFavoritos = () => {
-    setMostrarFavoritos(true);
-    if (todosLosCantos.length > 0 && user) {
-      const cantosFavoritos = todosLosCantos.filter(canto => favoritos.includes(canto.id));
-      setCantos(cantosFavoritos);
+    /** ✅ Funciones */
+    const filtrarFavoritos = useCallback(() => {
+      setMostrarFavoritos(true);
+      if (todosLosCantos.length > 0) {
+        const cantosFavoritos = todosLosCantos.filter(canto => favoritos.includes(canto.id));
+        setCantos(cantosFavoritos);
+        setPaginaActual(1);
+        setNoResults(cantosFavoritos.length === 0);
+      }
+    }, [todosLosCantos, favoritos]);
+  
+    const buscarCantoPorTitulo = useCallback((titulo: string) => {
+      const cantosFiltrados = todosLosCantos.filter(canto =>
+        canto.titulo.toLowerCase().includes(titulo.toLowerCase().trim())
+      );
+      setCantos(cantosFiltrados);
       setPaginaActual(1);
-      setNoResults(cantosFavoritos.length === 0);
-    }
-  };
-
-  const buscarCantoPorTitulo = (titulo: string) => {
-    const cantosFiltrados = todosLosCantos.filter(canto =>
-      canto.titulo.toLowerCase().includes(titulo.toLowerCase().trim())
-    );
-    setCantos(cantosFiltrados);
-    setPaginaActual(1);
-    setNoResults(cantosFiltrados.length === 0);
-  };
-
-  const mostrarTodos = () => {
-    setMostrarFavoritos(false);
-    setCantos(todosLosCantos);
-    setPaginaActual(1);
-    setNoResults(todosLosCantos.length === 0);
-  };
+      setNoResults(cantosFiltrados.length === 0);
+    }, [todosLosCantos]);
+  
+    const mostrarTodos = useCallback(() => {
+      setMostrarFavoritos(false);
+      setCantos(todosLosCantos);
+      setPaginaActual(1);
+      setNoResults(todosLosCantos.length === 0);
+    }, [todosLosCantos]);
 
   return (
     <div
@@ -156,27 +145,7 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
       )}
 
       {/* Paginación */}
-      <div className="flex justify-center items-center gap-4 2xl:mt-2">
-        <button
-          onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
-          disabled={paginaActual === 1}
-          className="mt-2 px-1 py-1 bg-background rounded disabled:opacity-50"
-        >
-          <Icon name="left" size="xxl" className="fill-secondary text-transparent hover:opacity-50" />
-        </button>
-
-        <span className="text-background mt-2">
-          Página {paginaActual} de {totalPaginas}
-        </span>
-
-        <button
-          onClick={() => setPaginaActual((prev) => Math.min(prev + 1, totalPaginas))}
-          disabled={paginaActual === totalPaginas}
-          className="mt-2 px-1 py-1 bg-background rounded disabled:opacity-50"
-        >
-          <Icon name="right" size="xxl" className="fill-secondary text-transparent hover:opacity-50" />
-        </button>
-      </div>
+      <Pagination paginaActual={paginaActual} totalPaginas={totalPaginas} setPaginaActual={setPaginaActual} />
     </div>
   );
 }
