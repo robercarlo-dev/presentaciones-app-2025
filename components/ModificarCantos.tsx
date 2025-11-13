@@ -149,23 +149,27 @@ export default function ModificarCantos() {
             <h2 className="text-2xl font-medium text-background mb-2">Editando: {canto.titulo}</h2>
             <div className="flex justify-between">
               <div className="mb-4">
-                <label className="text-background mr-2">Título:</label>
-                <input
-                  type="text"
-                  value={nuevoTitulo}
-                  onChange={(e) => setNuevoTitulo(e.target.value)}
-                  className="bg-background border border-primary w-100 text-secondary p-2 rounded-lg mt-1"
-                />
+                <label className="text-background ">Título:
+                  <input
+                    name='tituloCanto'
+                    type="text"
+                    value={nuevoTitulo}
+                    onChange={(e) => setNuevoTitulo(e.target.value)}
+                    className="bg-background border border-primary w-100 text-secondary p-2 rounded-lg mt-1 ml-2"
+                  />
+                </label>
               </div>
               <div className="mb-4">
-                <label className="text-background mr-2">Cantidad de diapositivas: </label>
-                <input
-                  type="number"
-                  value={cantidadEstrofas}
-                  onChange={(e) => setCantidadEstrofas(Number(e.target.value))}
-                  min={1}
-                  className="border border-primary text-xl w-15 text-secondary text-center bg-background p-2 rounded-lg mt-1"
-                />
+                <label className="text-background">Cantidad de diapositivas: 
+                  <input
+                    name='cantidadEstrofas'
+                    type="number"
+                    value={cantidadEstrofas}
+                    onChange={(e) => setCantidadEstrofas(Number(e.target.value))}
+                    min={1}
+                    className="border border-primary text-xl w-15 text-secondary text-center bg-background p-2 rounded-lg mt-1 ml-2"
+                  />
+                </label>
               </div>
             </div>
 
@@ -175,16 +179,18 @@ export default function ModificarCantos() {
               </h2>
               {Array.from({ length: cantidadEstrofas }, (_, i) => (
                 <div key={i} className="flex items-center">
-                  <label className="text-background mr-2">{i + 1}:</label>
-                  <textarea
-                    value={nuevasEstrofas[i] || ''}
-                    onChange={(e) => {
-                      const nuevas = [...nuevasEstrofas];
-                      nuevas[i] = e.target.value;
-                      setNuevasEstrofas(nuevas);
-                    }}
-                    className="border border-primary text-secondary bg-background p-2 rounded-lg mt-1 h-40 w-80"
-                  />
+                  <label className="text-background">{i + 1}.
+                    <textarea
+                      name={`estrofa-${i}`}
+                      value={nuevasEstrofas[i] || ''}
+                      onChange={(e) => {
+                        const nuevas = [...nuevasEstrofas];
+                        nuevas[i] = e.target.value;
+                        setNuevasEstrofas(nuevas);
+                      }}
+                      className="border border-primary text-secondary bg-background p-2 rounded-lg mt-1 ml-2 h-40 w-80"
+                    />
+                  </label>
                 </div>
               ))}
             </div>

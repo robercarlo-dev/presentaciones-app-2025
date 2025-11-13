@@ -1,16 +1,46 @@
 // //Componente que muestra las listas de presentaciones y permite activar una lista
 "use client";
 
+import { useState } from 'react';
 import { usePresentation } from '../context/PresentationContext';
 import ListaPresentaciones from './ListaPresentaciones';
+import { Icon } from './SvgIcons';
+import toast from 'react-hot-toast';
 
 export default function ListasPresentaciones() {
-  const { listas, listaActivaId } = usePresentation();
+  const { listas, crearLista, listaActivaId, setListaActivaId } = usePresentation();
+  const [nuevoNombre, setNuevoNombre] = useState('');
+
+  const handleCrearLista = () => {
+    if (nuevoNombre.trim() !== '') {
+      crearLista(nuevoNombre.trim());
+      setNuevoNombre('');
+    } else {
+      toast.error('El nombre de la presentación no puede estar vacío.');
+    }
+  };
 
   if (listas.length === 0) {
     return (
-      <div className="mt-14 text-gray-500 italic">
-        No hay presentaciones creadas aún.
+      <div className="mt-14 text-secondary">
+        <p>No hay presentaciones creadas aún.</p>
+        <p>¡Comienza creando una nueva presentación!</p>
+        <div className="flex items-center gap-2 my-2" title="Crear presentación">
+          <input
+            name="nombre"
+            type="text"
+            value={nuevoNombre}
+            onChange={(e) => setNuevoNombre(e.target.value)}
+            placeholder="Nombre de nueva presentación"
+            className="border px-3 py-2 rounded-xl w-75 text-sm font-light text-secondary bg-background"
+          />
+          <button
+            onClick={handleCrearLista}
+          >
+            <Icon name="presentation" size="xl" className="fill-primary text-transparent hover:opacity-50" />
+          </button>
+        </div>
+        <p className='text-sm font-light italic'>Puedes crear más de una presentación <br/> y también puedes guardarlas para después, <br/> utiliza el menú al tope de la página.</p>
       </div>
     );
   }

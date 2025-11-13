@@ -28,6 +28,7 @@ export default function BuscadorCantos({
     <form onSubmit={handleSubmit} className={`flex flex-col gap-4 w-full mx-auto bg-primary self-baseline ${className}`}>
       <div className="flex mx-auto my-4 gap-2 w-100 justify-around items-center rounded-lg bg-background">
         <input
+          name='buscarCanto'
           placeholder={placeholder}
           type="text"
           value={value}
