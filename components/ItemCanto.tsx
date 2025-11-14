@@ -75,86 +75,39 @@ const ItemCanto: React.FC<CantoProps> = ({ canto }) => {
   };
 
   return (
-    <>
-      <div
-        className={`rounded-lg grid grid-cols-12 2xl:grid-cols-32 gap-3 2xl:gap-5 h-full ${
-          cantoYaAgregado ? "bg-accent" : ""
-        }`}
-      >
-        <h3
-          className={`text-sm lg:text-xl 2xl:text-2xl font-medium truncate col-span-8 2xl:col-span-22 flex items-center ml-2 lg:ml-5 ${
-            cantoYaAgregado ? "text-primary" : "text-secondary"
-          }`}
-        >
+      <div className={`rounded-lg grid grid-cols-12 2xl:grid-cols-32 gap-3 2xl:gap-5 h-full ${ cantoYaAgregado ? "bg-accent" : ""}`}>
+        <h3 className={`text-sm lg:text-xl 2xl:text-2xl font-medium truncate col-span-8 2xl:col-span-22 flex items-center ml-2 lg:ml-5 ${ cantoYaAgregado ? "text-primary" : "text-secondary"}`} >
           <span className="truncate block overflow-hidden whitespace-nowrap">
             {canto.titulo}
           </span>
         </h3>
-        <div className="col-span-4 2xl:col-span-10 flex justify-around">
+        <div className="col-span-4 2xl:col-span-10 flex justify-end gap-2 pr-2">
           <button onClick={handlePreview}>
-            <Icon
-              name="view"
-              size={`${
-                is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl"
-              }`}
-              className="fill-secondary text-transparent hover:opacity-50"
-            />
+            <Icon name="view" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-secondary text-transparent hover:opacity-50"/>
           </button>
           {listaActivaId && listas.length > 0 && (
             <>
               {!cantoYaAgregado ? (
                 <button onClick={handleAdd}>
-                  <Icon
-                    name="add"
-                    size={`${
-                      is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl"
-                    }`}
-                    className="fill-secondary text-transparent hover:opacity-50"
-                  />
+                  <Icon name="add" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-secondary text-transparent hover:opacity-50" />
                 </button>
               ) : (
                 <button onClick={handleRemove}>
-                  <Icon
-                    name="remove"
-                    size={`${
-                      is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl"
-                    }`}
-                    className="fill-red-500 text-transparent hover:opacity-50"
-                  />
+                  <Icon name="remove" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-red-500 text-transparent hover:opacity-50" />
                 </button>
               )}
             </>
           )}
           <button onClick={toggleFavorito}>
             {esFavorito && (
-              <Icon
-              name="star_filled"
-              size={`${
-                is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl"
-              }`}
-              className="fill-primary text-transparent hover:opacity-50"
-            />
-              )}
-            {!esFavorito && (
-              <Icon
-              name="star_edges"
-              size={`${
-                is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl"
-              }`}
-              className="fill-primary text-transparent hover:opacity-50"
-              />
+              <Icon name="star_filled" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-primary text-transparent hover:opacity-50" />
             )}
-            {/* <Icon
-              name="star_edges"
-              size={`${
-                is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl"
-              }`}
-              className={`${esFavorito ? "fill-primary" : "fill-transparent stroke-secondary"}  text-transparent hover:opacity-50`}
-            /> */}
+            {!esFavorito && (
+              <Icon name="star_edges" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-primary text-transparent hover:opacity-50" />
+            )}
           </button>
         </div>
       </div>
-    </>
   );
 };
 

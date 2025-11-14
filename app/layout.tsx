@@ -1,7 +1,7 @@
 // app/layout.tsx
 import './globals.css';
 import { ReactNode } from 'react';
-import MenuConfiguraciones from '../components/MenuConfiguraciones';
+import BarradeNavegacion from '../components/BarraDeNavegacion';
 import localFont from 'next/font/local';
 import HojaPreview from '@/components/HojaPreview';
 import { Toaster } from 'react-hot-toast';
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="font-sans">
         <RootProvider>
             <header>
-              <MenuConfiguraciones />
+              <BarradeNavegacion />
             </header>
             <HojaPreview />
             <main>{children}</main>

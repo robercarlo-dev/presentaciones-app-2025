@@ -10,7 +10,9 @@ export default function RootProvider({ children }: { children: ReactNode }) {
   return (
     <UserProvider>
       <QueryProvider>
-        <KeyedPresentationProvider>{children}</KeyedPresentationProvider>
+        <KeyedPresentationProvider>
+          {children}
+        </KeyedPresentationProvider>
       </QueryProvider>
     </UserProvider>
   );

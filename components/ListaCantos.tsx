@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import ItemCanto from './ItemCanto';
 import { usePresentation } from '../context/PresentationContext';
 import { useUser } from '@/context/UserContext';
@@ -28,6 +28,7 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
 
   const { favoritos, setFavoritos } = usePresentation();
   const { user } = useUser();
+  const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   const is2XLDesktop = useMediaQuery({ minWidth: 1536 });
 
   const totalPaginas = Math.ceil(cantos.length / cantosPorPagina);
@@ -79,6 +80,11 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
     }
   }, [favoritos, mostrarFavoritos, todosLosCantos]);
 
+  useEffect(() => {
+    setPaginaActual(1);
+    setNoResults(cantos.length === 0);
+  }, [cantos]);
+
     /** ✅ Funciones */
     const filtrarFavoritos = useCallback(() => {
       setMostrarFavoritos(true);
@@ -89,11 +95,20 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
         setNoResults(cantosFavoritos.length === 0);
       }
     }, [todosLosCantos, favoritos]);
+
+    const eliminarAcentos = (texto: string): string => {
+      return texto
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '');
+    };
   
     const buscarCantoPorTitulo = useCallback((titulo: string) => {
+      const tituloBusqueda = eliminarAcentos(titulo.trim().toLowerCase());
+      
       const cantosFiltrados = todosLosCantos.filter(canto =>
-        canto.titulo.toLowerCase().includes(titulo.toLowerCase().trim())
+        eliminarAcentos(canto.titulo.toLowerCase()).includes(tituloBusqueda)
       );
+      
       setCantos(cantosFiltrados);
       setPaginaActual(1);
       setNoResults(cantosFiltrados.length === 0);
@@ -116,15 +131,15 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
       </h2>
 
       {/* Barra de búsqueda y botones */}
-      <div className="flex">
-        <BuscadorCantos value={cantoABuscar} onChange={setCantoABuscar} onSearch={buscarCantoPorTitulo} />
+      <div className="grid grid-cols-9 justify-between">
+        <BuscadorCantos className="col-span-7" value={cantoABuscar} onChange={setCantoABuscar} cantosAFiltrar={todosLosCantos} setCantosFiltrados={setCantos}/>
 
-        <div className="flex gap-3 my-4 text-center">
+        <div className="flex col-span-2 gap-3 text-center ml-auto">
           <button title="todos" onClick={mostrarTodos}>
-            <Icon name="list" size="xl" className="fill-background text-transparent hover:opacity-50" />
+            <Icon name="list" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent hover:opacity-50" />
           </button>
           <button title="favoritos" onClick={filtrarFavoritos} className="text-white rounded hover:opacity-50">
-            <Icon name="star_list" size="xl" className="fill-background text-transparent hover:opacity-50" />
+            <Icon name="star_list" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent hover:opacity-50" />
           </button>
         </div>
       </div>

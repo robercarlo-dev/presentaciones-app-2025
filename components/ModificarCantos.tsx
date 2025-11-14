@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/context/UserContext';
 import { useCantos } from '@/hooks/useCantos';
@@ -60,6 +60,7 @@ export default function ModificarCantos() {
 
   useEffect(() => {
     if (editandoCantoId && !cantosCargados.find((c) => c.id === editandoCantoId)) {
+      console.log('El canto editado ya no existe en el caché, reseteando estado de edición.');
       resetAttributes();
     }
   }, [cantosCargados, editandoCantoId]);
@@ -78,22 +79,18 @@ export default function ModificarCantos() {
     resetAttributes();
   };
 
-  const buscarCantoPorTitulo = (titulo: string) => {
-    const cantosFiltrados = cantosCargados.filter((canto) =>
-      canto.titulo.toLowerCase().includes(titulo.toLowerCase().trim())
-    );
-    setCantosSeleccionados(cantosFiltrados);
-    if (cantosFiltrados.length === 1) {
-      setAttributes(cantosFiltrados[0]);
+  useEffect(() => {
+    if (cantosSeleccionados.length === 1) {
+      console.log('Un solo canto seleccionado, estableciendo atributos para edición.');
+      setAttributes(cantosSeleccionados[0]);
     }
-  };
+  }), [cantosSeleccionados];
 
   const setAttributes = (canto: Canto) => {
     setEditandoCantoId(canto.id);
     setNuevoTitulo(canto.titulo);
     setNuevasEstrofas(canto.estrofas);
     setCantidadEstrofas(canto.estrofas.length || 1);
-    setCantosSeleccionados([canto]);
   };
 
   const resetAttributes = () => {
@@ -112,7 +109,7 @@ export default function ModificarCantos() {
         Modificar Cantos Existentes
       </h1>
 
-      <BuscadorCantos value={cantoABuscar} onChange={setCantoABuscar} onSearch={buscarCantoPorTitulo} placeholder='Título del Canto a Modificar' />
+      <BuscadorCantos className="mx-auto w-100" value={cantoABuscar} onChange={setCantoABuscar} placeholder='Título del Canto a Modificar' cantosAFiltrar={cantosCargados} setCantosFiltrados={setCantosSeleccionados}/>
 
       {cantosSeleccionados.length > 1 && (
         <div className="text-background text-center w-5/10 pt-3 m-auto">
@@ -128,7 +125,7 @@ export default function ModificarCantos() {
                 >
                   <h2 className="text-xl font-medium text-background">{canto.titulo}</h2>
                   <button
-                    onClick={() => setAttributes(canto)}
+                    onClick={() => {setCantosSeleccionados([canto]); setAttributes(canto);}}
                     className="bg-primary text-white px-4 py-2 rounded hover:opacity-50"
                   >
                     Editar

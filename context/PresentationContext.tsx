@@ -35,6 +35,7 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [listaActivaId, setListaActivaId] = useState<string | null>(null);
   const [favoritos, setFavoritos] = useState<string[]>([]);
   const [cantoPreview, setCantoPreview] = useState<Canto | null>(null);
+  const [nuevaPresentacion, setNuevaPresentacion] = useState<Boolean>(false);
 
   const { user, isAuthenticated } = useUser();
   const usuarioId = isAuthenticated && user?.id ? user.id : undefined;
@@ -272,6 +273,9 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
         setCantoPreview,
         favoritos,
         setFavoritos,
+
+        nuevaPresentacion,
+        setNuevaPresentacion,
       }}
     >
       {children}

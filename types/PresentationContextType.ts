@@ -29,5 +29,7 @@ export type PresentationContextType = {
     
     favoritos: string[];
     setFavoritos: React.Dispatch<React.SetStateAction<string[]>>;
-    // listasDelUsuario: ListaPresentacion[];
+    
+    nuevaPresentacion: Boolean;
+    setNuevaPresentacion: React.Dispatch<React.SetStateAction<Boolean>>;
   };

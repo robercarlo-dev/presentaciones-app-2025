@@ -62,15 +62,6 @@ export default function EliminarCantos() {
     }
   }, [cantosCargados, cantosSeleccionados]);
 
-
-  const buscarCantoPorTitulo = (titulo: string) => {
-    const cantosFiltrados = cantosCargados.filter((canto) =>
-      canto.titulo.toLowerCase().includes(titulo.toLowerCase().trim())
-    );
-    setCantosSeleccionados(cantosFiltrados);
-    // Si hay uno solo, ya queda listo para mostrar
-  };
-
   const resetAttributes = () => {
     setCantosSeleccionados([]);
   };
@@ -84,10 +75,12 @@ export default function EliminarCantos() {
       </h1>
 
       <BuscadorCantos
+        className="mx-auto w-100"
         value={cantoABuscar}
         onChange={setCantoABuscar}
-        onSearch={buscarCantoPorTitulo}
         placeholder="Título del Canto a Eliminar"
+        cantosAFiltrar={cantosCargados}
+        setCantosFiltrados={setCantosSeleccionados}
       />
 
       {cantosSeleccionados.length > 1 && (
