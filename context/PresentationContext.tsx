@@ -135,18 +135,47 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   const eliminarLista = (id: string) => {
-    if (esBorrador(id)) {
-      setDrafts((prev) => prev.filter((l) => l.id !== id));
-      setListaActivaId((prev) => (prev === id ? (listas[0]?.id ?? null) : prev));
+    // Determinar si es borrador
+    const esBorradorLocal = esBorrador(id);
+    
+    if (esBorradorLocal) {
+      console.log("Eliminando borrador de lista", id);
+      
+      // Filtrar borradores y obtener nueva lista de borradores
+      setDrafts((prev) => {
+        const nuevosBorradores = prev.filter((l) => l.id !== id);
+        
+        // Buscar nueva lista activa entre todas las listas disponibles
+        const todasLasListas = [...listas, ...nuevosBorradores];
+        const nuevaListaActiva = todasLasListas.find(l => l.id !== id)?.id || null;
+        
+        // Actualizar lista activa si era la que se eliminó
+        setListaActivaId((prevId) => (prevId === id ? nuevaListaActiva : prevId));
+        
+        console.log("Borrador eliminado");
+        return nuevosBorradores;
+      });
+      
       return;
     }
     
+    // Para listas normales
     supabase
       .from("listas")
       .delete()
       .eq("id", id)
       .then(({ error }) => {
-        if (error) console.error(error);
+        if (error) {
+          console.error(error);
+          return;
+        }
+        
+        // Buscar nueva lista activa después de eliminar
+        const listasRestantes = listas.filter(l => l.id !== id);
+        const todasLasListas = [...listasRestantes, ...drafts];
+        const nuevaListaActiva = todasLasListas[0]?.id || null;
+        
+        setListaActivaId((prev) => (prev === id ? nuevaListaActiva : prev));
         qc.invalidateQueries({ queryKey: ["listas", usuarioId] });
       });
   };

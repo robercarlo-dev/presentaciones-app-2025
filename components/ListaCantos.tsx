@@ -13,9 +13,10 @@ import Pagination from './Pagination';
 
 interface ListaCantosProps {
   cantosData: Canto[];
+  className?: string;
 }
 
-export default function ListaCantos({ cantosData }: ListaCantosProps) {
+export default function ListaCantos({ cantosData, className }: ListaCantosProps) {
   const [cantos, setCantos] = useState<Canto[]>([]);
   const [todosLosCantos, setTodosLosCantos] = useState<Canto[]>([]);
   const [cantoABuscar, setCantoABuscar] = useState<string>('');
@@ -123,7 +124,7 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
 
   return (
     <div
-      className="bg-primary rounded-xl lg:w-[480px] xl:w-[620px] 2xl:w-[730px] md:py-5 py-15 px-6 mt-10 drop-shadow-xl/50"
+      className={`bg-primary rounded-xl min-w-[340] sm:min-w-[360px] md:w-[380px] lg:w-[480px] xl:w-[620px] 2xl:w-[730px] md:py-5 py-15 px-4 sm:px-6 mt-10 drop-shadow-xl/50 ${className}`}
       style={{ height: `calc(100vh - 90px)`, minHeight: '700px' }}
     >
       <h2 className="font-goham font-bold uppercase text-l xl:text-3xl 2xl:mt-2 text-background text-center">
@@ -132,9 +133,9 @@ export default function ListaCantos({ cantosData }: ListaCantosProps) {
 
       {/* Barra de búsqueda y botones */}
       <div className="grid grid-cols-9 justify-between">
-        <BuscadorCantos className="col-span-7" value={cantoABuscar} onChange={setCantoABuscar} cantosAFiltrar={todosLosCantos} setCantosFiltrados={setCantos}/>
+        <BuscadorCantos className="col-span-7 sm:mr-0 mr-3" value={cantoABuscar} onChange={setCantoABuscar} cantosAFiltrar={todosLosCantos} setCantosFiltrados={setCantos}/>
 
-        <div className="flex col-span-2 gap-3 text-center ml-auto">
+        <div className="flex col-span-2 sm:gap-3 gap-2 text-center ml-auto">
           <button title="todos" onClick={mostrarTodos}>
             <Icon name="list" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent hover:opacity-50" />
           </button>

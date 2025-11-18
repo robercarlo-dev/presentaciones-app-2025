@@ -84,7 +84,7 @@ export default function ModificarCantos() {
       console.log('Un solo canto seleccionado, estableciendo atributos para edición.');
       setAttributes(cantosSeleccionados[0]);
     }
-  }), [cantosSeleccionados];
+  }, [cantosSeleccionados]);
 
   const setAttributes = (canto: Canto) => {
     setEditandoCantoId(canto.id);
@@ -109,10 +109,10 @@ export default function ModificarCantos() {
         Modificar Cantos Existentes
       </h1>
 
-      <BuscadorCantos className="mx-auto w-100" value={cantoABuscar} onChange={setCantoABuscar} placeholder='Título del Canto a Modificar' cantosAFiltrar={cantosCargados} setCantosFiltrados={setCantosSeleccionados}/>
+      <BuscadorCantos className="mx-auto w-9/10 sm:w-100" value={cantoABuscar} onChange={setCantoABuscar} placeholder='Título del Canto a Modificar' cantosAFiltrar={cantosCargados} setCantosFiltrados={setCantosSeleccionados}/>
 
       {cantosSeleccionados.length > 1 && (
-        <div className="text-background text-center w-5/10 pt-3 m-auto">
+        <div className="text-background text-center w-9/10 lg:w-5/10 pt-3 m-auto">
           <h2 className="text-2xl font-medium text-background mb-4 text-center">
             Resultados de la búsqueda:
           </h2>
@@ -123,7 +123,7 @@ export default function ModificarCantos() {
                   key={canto.id}
                   className="flex gap-3 justify-between items-center border border-primary rounded-lg p-2 mb-1 bg-secondary"
                 >
-                  <h2 className="text-xl font-medium text-background">{canto.titulo}</h2>
+                  <h2 className="text-xl font-medium text-background truncate block overflow-hidden whitespace-nowrap">{canto.titulo}</h2>
                   <button
                     onClick={() => {setCantosSeleccionados([canto]); setAttributes(canto);}}
                     className="bg-primary text-white px-4 py-2 rounded hover:opacity-50"
@@ -144,19 +144,19 @@ export default function ModificarCantos() {
             className="flex flex-col border border-primary rounded-lg p-4 mb-4 bg-secondary/10 mx-4"
           >
             <h2 className="text-2xl font-medium text-background mb-2">Editando: {canto.titulo}</h2>
-            <div className="flex justify-between">
-              <div className="mb-4">
+            <div className="flex flex-col sm:flex-row justify-between">
+              <div className="text-center">
                 <label className="text-background ">Título:
                   <input
                     name='tituloCanto'
                     type="text"
                     value={nuevoTitulo}
                     onChange={(e) => setNuevoTitulo(e.target.value)}
-                    className="bg-background border border-primary w-100 text-secondary p-2 rounded-lg mt-1 ml-2"
+                    className="bg-background border border-primary  w-9/10 sm:w-100 text-secondary p-2 rounded-lg mt-1 ml-2"
                   />
                 </label>
               </div>
-              <div className="mb-4">
+              <div className="text-center mt-4 sm:mt-0">
                 <label className="text-background">Cantidad de diapositivas: 
                   <input
                     name='cantidadEstrofas'

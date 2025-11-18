@@ -8,7 +8,7 @@ import { Icon } from './SvgIcons';
 import toast from 'react-hot-toast';
 
 export default function ListasPresentaciones() {
-  const { listas, crearLista, listaActivaId, setListaActivaId, nuevaPresentacion, setNuevaPresentacion } = usePresentation();
+  const { listas, crearLista, listaActivaId, nuevaPresentacion, setNuevaPresentacion } = usePresentation();
   const [nuevoNombre, setNuevoNombre] = useState('');
 
   const handleCrearLista = () => {
@@ -25,7 +25,7 @@ export default function ListasPresentaciones() {
       <div className="mt-14 text-secondary">
         <p>No hay presentaciones creadas aún.</p>
         <p>¡Comienza creando una nueva presentación!</p>
-        <div className="flex items-center gap-2 my-2" title="Crear presentación">
+        <form className="flex items-center gap-2 my-2" title="Crear presentación" onSubmit={(e) => { e.preventDefault(); handleCrearLista();}}>
           <input
             name="nombre"
             type="text"
@@ -34,12 +34,10 @@ export default function ListasPresentaciones() {
             placeholder="Nombre de nueva presentación"
             className="border px-3 py-2 rounded-xl w-75 text-sm font-light text-secondary bg-background"
           />
-          <button
-            onClick={handleCrearLista}
-          >
+          <button type="submit">
             <Icon name="presentation" size="xl" className="fill-primary text-transparent hover:opacity-50" />
           </button>
-        </div>
+        </form>
         <p className='text-sm font-light italic'>Puedes crear más de una presentación <br/> y también puedes guardarlas para después, <br/> utiliza el menú al tope de la página.</p>
       </div>
     );
@@ -49,7 +47,10 @@ export default function ListasPresentaciones() {
     return (
       <div className="mt-14 text-secondary">
         <p>Estás creando una nueva presentación.</p>
-        <div className="flex items-center gap-2 my-2" title="Crear presentación">
+        <form className="flex items-center gap-2 my-2" title="Crear presentación" onSubmit={(e) => { 
+          e.preventDefault(); // Prevent default browser form submission
+          handleCrearLista();
+          setNuevaPresentacion(false);}}>
           <input
             name="nombre"
             type="text"
@@ -58,18 +59,13 @@ export default function ListasPresentaciones() {
             placeholder="Nombre de nueva presentación"
             className="border px-3 py-2 rounded-xl w-75 text-sm font-light text-secondary bg-background"
           />
-          <button
-            onClick={() => {
-              handleCrearLista();
-              setNuevaPresentacion(false);
-            }}
-          >
+          <button type="submit">
             <Icon name="presentation" size="xl" className="fill-primary text-transparent hover:opacity-50" />
           </button>
           <button onClick={() => setNuevaPresentacion(false)} className="bg-primary text-background p-2 hover:opacity-50">
             Cancelar
           </button>
-        </div>
+        </form>
       </div>
     );
   }

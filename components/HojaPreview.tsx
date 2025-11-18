@@ -18,7 +18,7 @@ export default function HojaPreview() {
         <>
             {cantoPreview && (
                 <div className="fixed inset-0 bg-black/75 flex justify-center items-center z-50">
-                <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-2/3 lg:w-1/2 h-screen mx-auto overflow-auto">
+                <div className="bg-white rounded-lg shadow-lg p-6 max-h-screen h-auto mx-auto overflow-auto">
                     <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl text-primary font-bold">{cantoPreview?.titulo}</h2>
                     <button

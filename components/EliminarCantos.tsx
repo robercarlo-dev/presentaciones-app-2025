@@ -75,7 +75,7 @@ export default function EliminarCantos() {
       </h1>
 
       <BuscadorCantos
-        className="mx-auto w-100"
+        className="mx-auto w-9/10 sm:w-100"
         value={cantoABuscar}
         onChange={setCantoABuscar}
         placeholder="Título del Canto a Eliminar"
@@ -84,7 +84,7 @@ export default function EliminarCantos() {
       />
 
       {cantosSeleccionados.length > 1 && (
-        <div className="text-background text-center w-5/10 pt-3 m-auto">
+        <div className="text-background text-center w-9/10 lg:w-5/10 pt-3 m-auto">
           <h2 className="text-2xl font-medium text-background mb-4 text-center">
             Resultados de la búsqueda:
           </h2>
@@ -95,7 +95,7 @@ export default function EliminarCantos() {
                   key={canto.id}
                   className="flex gap-3 justify-between items-center border border-primary rounded-lg p-2 mb-1 bg-secondary"
                 >
-                  <h2 className="text-xl font-medium text-background">{canto.titulo}</h2>
+                  <h2 className="text-xl font-medium text-background truncate block overflow-hidden whitespace-nowrap">{canto.titulo}</h2>
                   <button
                     onClick={() => setCantosSeleccionados([canto])}
                     className="bg-primary text-white px-4 py-2 rounded hover:opacity-50"
@@ -119,10 +119,10 @@ export default function EliminarCantos() {
               Eliminar: {canto.titulo}
             </h2>
 
-            <div className="flex justify-between">
+            <div className="flex flex-col justify-between">
               <div className="mb-4">
                 <label className="text-background mr-2">Título:</label>
-                <p className="bg-background border border-primary w-100 text-secondary p-2 rounded-lg mt-1">
+                <p className="bg-background border border-primary w-9/10 sm:w-100 text-secondary p-2 rounded-lg mt-1">
                   {canto.titulo}
                 </p>
               </div>

@@ -2,8 +2,8 @@
 "use client";
 
 import { useState } from 'react';
-import { useUser } from '@/context/UserContext';
 import { usePresentation } from '../context/PresentationContext';
+import { useMediaQuery } from "react-responsive";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent} from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
@@ -20,8 +20,8 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
   const lista = listas.find((l) => l.id === listaId);
   const [editandoNombre, setEditandoNombre] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState(lista?.nombre || '');
-  // const [usuarioId, setUsuarioId] = useState<string | null>(null);
-  const { user, isAuthenticated } = useUser();
+  const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+  const is2XLDesktop = useMediaQuery({ minWidth: 1536 });
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -147,13 +147,13 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
   };
 
   return (
-    <div className="bg-primary rounded-xl py-6 px-6 w-screen max-w-[480px] xl:max-w-[620px] 2xl:max-w-[730px]" style={{ height: `calc(100vh - 90px)`, minHeight: '700px', }}>
-      <div className="text-center mb-4">
+    <div className="bg-primary rounded-xl md:py-5 py-15 px-6 w-screen max-w-39/40 md:max-w-[380px] lg:max-w-[480px] xl:max-w-[620px] 2xl:max-w-[730px]" style={{ height: `calc(100vh - 90px)`, minHeight: '700px', }}>
+      <div className="text-center mb-2">
         {editandoNombre ? (
           <div className="flex items-center gap-2 text-background">
             <input type="text" value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} className="border px-2 py-1 rounded"/>
             <button onClick={handleGuardarNombre}>
-              <Icon name="guardar" size="xxxl" className="fill-background text-transparent hover:opacity-50" />
+              <Icon name="guardar" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent hover:opacity-50" />
             </button>
           </div>
         ) : (
@@ -161,27 +161,27 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
             {lista.nombre}
           </h3>
         )}
-        <div className="flex gap-2 item-center justify-end">
+        <div className="flex gap-2 item-center justify-center">
           {lista.cantos.length > 0 && (
             <button onClick={handleDescargar} className='text-background text-xs hover:cursor-pointer hover:opacity-50'>
-              <Icon name="download" size="xxxl" className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
+              <Icon name="download" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
               Descargar
             </button>
           )}
           {!lista.isSaved && (
-            <button onClick={handleGuardar} className='text-background text-xs hover:cursor-pointer hover:opacity-50'>
-              <Icon name="guardar" size="xxxl" className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl " />
+            <button onClick={handleGuardar} className='text-background text-xs min-w-15 hover:cursor-pointer hover:opacity-50'>
+              <Icon name="guardar" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl " />
               Guardar
             </button>
           )}
           {!editandoNombre && (
-            <button onClick={() => setEditandoNombre(true)} className="text-background text-xs hover:cursor-pointer hover:opacity-50">
-             <Icon name="editar" size="xxxl" className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
+            <button onClick={() => setEditandoNombre(true)} className="text-background text-xs min-w-15 hover:cursor-pointer hover:opacity-50">
+             <Icon name="editar" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
             Editar
             </button>
           )}
-          <button onClick={handleEliminar}className="text-background text-xs hover:cursor-pointer hover:opacity-50">
-            <Icon name="trash" size="xxxl" className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
+          <button onClick={handleEliminar}className="text-background text-xs min-w-15 hover:cursor-pointer hover:opacity-50">
+            <Icon name="trash" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
             Eliminar
           </button>  
         </div>

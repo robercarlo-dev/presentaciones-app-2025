@@ -93,8 +93,8 @@ export default function AgregarCantos() {
         Agregar Canto Nuevo
       </h1>
 
-      <div className="flex mx-4 justify-around pb-10">
-        <div>
+      <div className="flex flex-col sm:flex-row mx-4 justify-around pb-10">
+        <div className="text-center">
           <label className="text-background">
             Título:
             <input
@@ -102,12 +102,12 @@ export default function AgregarCantos() {
               type="text"
               value={nuevoTitulo}
               onChange={(e) => setNuevoTitulo(e.target.value)}
-              className="bg-background border border-primary w-100 text-secondary p-2 rounded-lg mt-1 ml-2"
+              className="bg-background border border-primary w-9/10 sm:w-100 text-secondary p-2 rounded-lg mt-1 ml-2"
               disabled={mutation.isPending}
             />
           </label>
         </div>
-        <div>
+        <div className="text-center mt-4 sm:mt-0">
           <label className="text-background mr-2">
             Cantidad de diapositivas:
             <input

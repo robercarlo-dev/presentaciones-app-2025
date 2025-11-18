@@ -24,8 +24,8 @@ export default function PaginaProtegida() {
   // Solo renderiza el contenido protegido si loading es false Y isAuthenticated es true
   if (isAuthenticated ) {
     return (
-      <div className="flex gap-10 justify-center m-4 bg-background">
-        <ListaCantos cantosData={cantos || []}/>
+      <div className="flex md:gap-5 lg:gap-10 flex-col md:flex-row justify-center m-4 bg-background">
+        <ListaCantos cantosData={cantos || []} className="order-last sm:order-first"/>
         <ListasPresentaciones />
       </div>
     );
