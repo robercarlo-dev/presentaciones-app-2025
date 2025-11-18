@@ -2,13 +2,14 @@
 import { useState, useEffect, useRef } from 'react';
 import LogoutButton from './LogoutButton';
 import { useUser } from '@/context/UserContext';
+import { useRouter } from 'next/navigation';
 
 export default function MenuDeUsuario() {
     const { user, isAuthenticated, authReady, loading } = useUser();
     const firstLetter = user?.nombre ? user.nombre.charAt(0).toUpperCase() : '';
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null); // Specify HTMLDivElement for the ref
-
+    const router = useRouter();
     const displayMenu = () => {
         setMenuOpen((prev) => !prev);
     };
@@ -45,6 +46,15 @@ export default function MenuDeUsuario() {
                             {firstLetter}
                         </div>
                         <p className="text-gray-800 text-sm font-medium">¡Hola, {user?.nombre}!</p>
+                    </div>
+                    <hr className="border-t border-primary mx-4" />
+                    <div className="flex flex-col gap-4 text-center mt-4">
+                        <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/user")}>
+                            Administrar cuenta
+                        </button>
+                        <button className="bg-background text-gray-800">
+                            Apariencia
+                        </button>
                     </div>
                     <div className="p-4">
                         <LogoutButton />

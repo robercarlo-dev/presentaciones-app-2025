@@ -68,7 +68,7 @@ export default function FullScreenSelect({listas, listaActivaId, onChange }: Ful
 
       {isSelectVisible && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/50 bg-opacity-80 z-50">
-            <div className="flex flex-col items-center bg-secondary/95 p-6">
+            <div className="flex flex-col items-center w-9/10 sm:w-4/10 bg-secondary/95 p-6">
                 <h2 className="text-background mb-4 text-lg">Selecciona una presentación</h2>
                 <Select
                     options={options}

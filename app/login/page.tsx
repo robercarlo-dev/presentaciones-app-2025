@@ -9,6 +9,7 @@ import Link from 'next/link';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar la contraseña
   const [errorMsg, setErrorMsg] = useState('');
   const { setUser } = useUser(); // <-- usamos el contexto
   const router = useRouter();
@@ -63,13 +64,22 @@ export default function LoginPage() {
         </div>
         <div>
           <label className="block mb-1">Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            className="w-full border px-3 py-2 rounded"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'} // Cambia el tipo de acuerdo al estado
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              className="w-full border px-3 py-2 rounded"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)} // Cambia el estado para mostrar/ocultar la contraseña
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-600"
+            >
+              {showPassword ? 'Ocultar' : 'Mostrar'}
+            </button>
+          </div>
         </div>
         {errorMsg && <p className="text-red-500">{errorMsg}</p>}
         <button
