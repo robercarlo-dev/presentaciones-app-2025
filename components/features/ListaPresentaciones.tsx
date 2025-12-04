@@ -1,31 +1,46 @@
 //Component for managing and displaying a presentation list with drag-and-drop functionality
 "use client";
 
-import { useState } from 'react';
-import { usePresentation } from '../context/PresentationContext';
+import { useState, useOptimistic, startTransition } from 'react';
+import { usePresentation } from '../../context/PresentationContext';
 import { useMediaQuery } from "react-responsive";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent} from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
-import DraggableItem from './DraggableItem';
-import { Icon } from './SvgIcons';
+import DraggableItem from '../layout/DraggableItem';
+import { Icon } from '../ui/SvgIcons';
 import PptxGenJS from 'pptxgenjs';
+import FullScreenSelect from '../features/FullScreenSelect';
+import { useTarjetas } from '@/hooks/useTarjetas';
+import { Tarjeta, Canto } from '@/types/supabase';
 
 type Props = {
   listaId: string;
 };
 
 const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
-  const { listas, editarNombreLista, eliminarLista, removerCantoDeLista, reordenarCantosEnLista, guardarListaBorrador, setListaActivaId, } = usePresentation();
+  const { listas, editarNombreLista, eliminarLista, removerCantoDeLista, reordenarCantosEnLista, guardarListaBorrador } = usePresentation();
   const lista = listas.find((l) => l.id === listaId);
+  const { data: tarjetas } = useTarjetas();
+
   const [editandoNombre, setEditandoNombre] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState(lista?.nombre || '');
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   const is2XLDesktop = useMediaQuery({ minWidth: 1536 });
-
-  const sensors = useSensors(useSensor(PointerSensor));
+  
+  const [displaySelect, setDisplaySelect] = useState<boolean>(false);
+  const [tarjetasEnLista, setTarjetasEnLista] = useState<Tarjeta[]>([]);
+  const [itemsEnLista, setItemsEnLista] = useState<(Tarjeta | Canto)[]>([]);
 
   if (!lista) return null;
+
+  // Estado optimista para los cantos
+  const [optimisticCantos, addOptimistic] = useOptimistic(
+    lista?.cantos || [],
+    (state, newCantos: typeof lista.cantos) => newCantos
+  );
+
+  const sensors = useSensors(useSensor(PointerSensor));
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -33,11 +48,27 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
 
     const oldIndex = lista.cantos.findIndex((item) => item.id === active.id);
     const newIndex = lista.cantos.findIndex((item) => item.id === over.id);
+    
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Crear nuevo orden optimista
     const nuevosCantos = arrayMove(lista.cantos, oldIndex, newIndex);
     const ordenIds = nuevosCantos.map((c) => c.id);
 
-    // reordenar y persistir (optimista)
-    reordenarCantosEnLista(listaId, ordenIds);
+    // Usar startTransition para envolver la actualización optimista
+    startTransition(() => {
+      // Actualización optimista: actualizar UI inmediatamente
+      addOptimistic(nuevosCantos);
+      
+     // Persistir cambios en el contexto (función síncrona)
+     try {
+        reordenarCantosEnLista(listaId, ordenIds);
+      } catch (error) {
+        console.error("Error al reordenar:", error);
+        // Si hay error, la actualización del contexto revertirá el estado
+        // cuando se actualice el contexto global
+      }
+    });
   };
 
   const handleGuardarNombre = () => {
@@ -46,9 +77,21 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
       setEditandoNombre(false);
       return;
     }
-    editarNombreLista(listaId, nombre);
+    
+    // También envolver esta actualización en startTransition si usa useOptimistic
+    startTransition(() => {
+      editarNombreLista(listaId, nombre);
+    });
     setEditandoNombre(false);
   };
+
+  const addTarjeta = (tarjetaId: string) => {
+    const tarjeta = tarjetas?.find(t => t.id === tarjetaId);
+    if (tarjeta) {
+      setTarjetasEnLista(prev => [...prev, tarjeta]);
+    }
+    setDisplaySelect(false);
+  }
 
   const handleGuardar = async () => {
     try {
@@ -60,10 +103,11 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
   };
 
   const handleEliminar = () => {
-      eliminarLista(listaId);
+    eliminarLista(listaId);
   }
+  
   const handleDescargar = () => {
-    // Generar presentación PowerPoint
+    // Usar los datos actuales del contexto, no los optimistas
     const pptx = new PptxGenJS();
     lista.cantos.forEach((canto) => {
       const titleSlide = pptx.addSlide();
@@ -79,7 +123,6 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
         align: 'center',
       });
 
-      // Crear una diapositiva por cada estrofa
       canto.estrofas.forEach((estrofa, index) => {
         const slide = pptx.addSlide();
         slide.background = { color: '000000', path: 'images/bg-cantos.jpg' };
@@ -93,25 +136,21 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
           align: 'left',
         });
 
-        // Ajustar el tamaño de fuente dinámicamente
-        let fontSize = 50; // Tamaño máximo de fuente
-        const minFontSize = 36; // Tamaño mínimo de fuente
-        const maxCharactersPerLine = 27; // Máximo de caracteres por línea
-        const maxLines = 7; // Máximo de líneas permitidas
+        let fontSize = 50;
+        const minFontSize = 36;
+        const maxCharactersPerLine = 27;
+        const maxLines = 7;
 
-        // Dividir el texto por saltos de línea
         const linesArray = estrofa.split('\n');
         let totalLines = 0;
 
-        // Calcular el número total de líneas necesarias
         linesArray.forEach((line) => {
           totalLines += Math.ceil(line.length / maxCharactersPerLine);
         });
 
-        // Reducir el tamaño de fuente si el texto es demasiado largo
         while (totalLines > maxLines && fontSize > minFontSize) {
-          fontSize -= 2; // Reducir el tamaño de fuente
-          totalLines = 0; // Recalcular líneas con el nuevo tamaño de fuente
+          fontSize -= 2;
+          totalLines = 0;
           linesArray.forEach((line) => {
             totalLines += Math.ceil(line.length / maxCharactersPerLine);
           });
@@ -151,7 +190,19 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
       <div className="text-center mb-2">
         {editandoNombre ? (
           <div className="flex items-center gap-2 text-background">
-            <input type="text" value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} className="border px-2 py-1 rounded"/>
+            <input 
+              type="text" 
+              value={nuevoNombre} 
+              onChange={(e) => setNuevoNombre(e.target.value)} 
+              className="border px-2 py-1 rounded"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleGuardarNombre();
+                if (e.key === 'Escape') {
+                  setEditandoNombre(false);
+                  setNuevoNombre(lista.nombre);
+                }
+              }}
+            />
             <button onClick={handleGuardarNombre}>
               <Icon name="guardar" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent hover:opacity-50" />
             </button>
@@ -162,6 +213,10 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
           </h3>
         )}
         <div className="flex gap-2 item-center justify-center">
+          <button onClick={() => setDisplaySelect(true)} className='text-background text-xs hover:cursor-pointer hover:opacity-50'>
+            <Icon name="select" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
+            Tarjetas
+          </button>
           {lista.cantos.length > 0 && (
             <button onClick={handleDescargar} className='text-background text-xs hover:cursor-pointer hover:opacity-50'>
               <Icon name="download" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
@@ -176,11 +231,11 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
           )}
           {!editandoNombre && (
             <button onClick={() => setEditandoNombre(true)} className="text-background text-xs min-w-15 hover:cursor-pointer hover:opacity-50">
-             <Icon name="editar" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
-            Editar
+              <Icon name="editar" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
+              Editar
             </button>
           )}
-          <button onClick={handleEliminar}className="text-background text-xs min-w-15 hover:cursor-pointer hover:opacity-50">
+          <button onClick={handleEliminar} className="text-background text-xs min-w-15 hover:cursor-pointer hover:opacity-50">
             <Icon name="trash" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
             Eliminar
           </button>  
@@ -194,9 +249,10 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
           modifiers={[restrictToParentElement]}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={lista.cantos} strategy={verticalListSortingStrategy}>
+          {/* Usamos optimisticCantos en lugar de lista.cantos */}
+          <SortableContext items={optimisticCantos} strategy={verticalListSortingStrategy}>
             <ul>
-              {lista.cantos.map((canto) => (
+              {optimisticCantos.map((canto) => (
                 <DraggableItem
                   key={canto.id}
                   canto={canto}
@@ -207,6 +263,14 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
           </SortableContext>
         </DndContext>
       </div>
+      {tarjetas && displaySelect && (
+        <FullScreenSelect
+          items={tarjetas}
+          onChange={(id) => {addTarjeta(id)}}
+          placeholder='Seleccionar tarjeta'
+          onClose={() => setDisplaySelect(false)}
+        />
+      )}
     </div>
   );
 };

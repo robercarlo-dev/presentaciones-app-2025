@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
-import DatosDeUsuario from '@/components/DatosDeUsuario';
+import DatosDeUsuario from '@/components/features/DatosDeUsuario';
 
 
 export default function PaginaProtegida() {

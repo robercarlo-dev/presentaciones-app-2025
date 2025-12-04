@@ -1,6 +1,6 @@
 "use client";
 
-import { usePresentation } from "../context/PresentationContext";
+import { usePresentation } from "../../context/PresentationContext";
 
 
 export default function HojaPreview() {

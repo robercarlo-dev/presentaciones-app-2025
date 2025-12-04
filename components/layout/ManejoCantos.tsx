@@ -1,10 +1,10 @@
 // Componente para modificar cantos de la base de datos
 "use client";
 import { useState } from 'react';
-import { Icon } from './SvgIcons';
-import AgregarCantos from './AgregarCantos';
-import ModificarCantos from './ModificarCantos';
-import EliminarCantos from './EliminarCantos';
+import { Icon } from '../ui/SvgIcons';
+import AgregarCantos from '../features/AgregarCantos';
+import ModificarCantos from '../features/ModificarCantos';
+import EliminarCantos from '../features/EliminarCantos';
 import { useMediaQuery } from "react-responsive";
 
 export default function ManejoCantos() {

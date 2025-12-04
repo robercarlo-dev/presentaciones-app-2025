@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
-import ListaCantos from '../components/ListaCantos';
-import ListasPresentaciones from '../components/ListasPresentaciones';
+import ListaCantos from '../components/features/ListaCantos';
+import ListasPresentaciones from '../components/layout/ListasPresentaciones';
 import { useCantos } from '@/hooks/useCantos';
 
 export default function PaginaProtegida() {

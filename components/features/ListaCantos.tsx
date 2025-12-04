@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import ItemCanto from './ItemCanto';
-import { usePresentation } from '../context/PresentationContext';
+import { usePresentation } from '../../context/PresentationContext';
 import { useUser } from '@/context/UserContext';
 import { obtenerFavoritos } from '@/services/cantos';
 import { Canto } from '@/types/supabase';
-import { Icon } from './SvgIcons';
+import { Icon } from '../ui/SvgIcons';
 import { useMediaQuery } from 'react-responsive';
-import BuscadorCantos from './BuscadorCantos';
-import Pagination from './Pagination';
+import BuscadorCantos from '../shared/BuscadorCantos';
+import Pagination from '../shared/Pagination';
 
 interface ListaCantosProps {
   cantosData: Canto[];

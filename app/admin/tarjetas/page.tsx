@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
-import ManejoCantos from '@/components/layout/ManejoCantos';
+import CrearTarjetas from '@/components/features/CrearTarjetas';
 
 
 export default function PaginaProtegida() {
@@ -25,7 +25,7 @@ export default function PaginaProtegida() {
 
   return (
     <>
-      <ManejoCantos />
+      <CrearTarjetas />
     </>
   );
 }

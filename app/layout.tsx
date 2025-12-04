@@ -1,9 +1,9 @@
 // app/layout.tsx
 import './globals.css';
 import { ReactNode } from 'react';
-import BarradeNavegacion from '../components/BarraDeNavegacion';
+import BarradeNavegacion from '../components/layout/BarraDeNavegacion';
 import localFont from 'next/font/local';
-import HojaPreview from '@/components/HojaPreview';
+import HojaPreview from '@/components/features/HojaPreview';
 import { Toaster } from 'react-hot-toast';
 import RootProvider from './RootProvider';
 

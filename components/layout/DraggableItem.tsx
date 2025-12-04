@@ -4,7 +4,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Canto } from '@/types/supabase';
-import { Icon } from './SvgIcons';
+import { Icon } from '../ui/SvgIcons';
 
 const DraggableItem = ({ canto, removeCanto}: { canto: Canto, removeCanto: (id:string) => void }) => {
   const { attributes, listeners, setNodeRef, transform } = useSortable({ id: canto.id });

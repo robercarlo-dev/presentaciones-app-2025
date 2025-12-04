@@ -2,9 +2,9 @@
 "use client";
 
 import { useState } from 'react';
-import { usePresentation } from '../context/PresentationContext';
-import ListaPresentaciones from './ListaPresentaciones';
-import { Icon } from './SvgIcons';
+import { usePresentation } from '../../context/PresentationContext';
+import ListaPresentaciones from '../features/ListaPresentaciones';
+import { Icon } from '../ui/SvgIcons';
 import toast from 'react-hot-toast';
 
 export default function ListasPresentaciones() {
@@ -80,7 +80,7 @@ export default function ListasPresentaciones() {
             key={lista.id}
             className="border rounded rounded-xl bg-primary drop-shadow-xl/50"
           >
-            <ListaPresentaciones listaId={lista.id} />
+            <ListaPresentaciones key={lista.id} listaId={lista.id} />
           </div>
         ))}
     </div>

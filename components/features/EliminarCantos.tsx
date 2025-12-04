@@ -7,8 +7,8 @@ import { useCantos } from '@/hooks/useCantos';
 import { eliminarCanto } from '@/services/cantos';
 import { Canto } from '@/types/supabase';
 import toast from 'react-hot-toast';
-import RemainingHeightDiv from '@/components/RemainingHeightDiv';
-import BuscadorCantos from './BuscadorCantos';
+import RemainingHeightDiv from '@/components/ui/RemainingHeightDiv';
+import BuscadorCantos from '../shared/BuscadorCantos';
 import BotonEliminarCanto from './BotonEliminarCanto';
 
 export default function EliminarCantos() {

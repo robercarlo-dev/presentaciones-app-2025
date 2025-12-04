@@ -1,19 +1,20 @@
 'use client';
 
 import { useUser } from '@/context/UserContext';
-import { usePresentation } from '../context/PresentationContext';
-import MenuDeUsuario from './MenuDeUsuario';
+import { usePresentation } from '../../context/PresentationContext';
+import MenuDeUsuario from '../MenuDeUsuario';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link'
-import { Icon } from './SvgIcons';
-import FullScreenSelect from './FullScreenSelect';
+import { Icon } from '../ui/SvgIcons';
+import FullScreenSelect from '../features/FullScreenSelect';
 
 export default function BarraDeNavegacion() {
   const { isAuthenticated } = useUser();
   const { listas, crearLista, listaActivaId, setListaActivaId, setNuevaPresentacion } = usePresentation()
   const [seleccion, setSeleccion] = useState<string>("inicio");
+  const [displaySelect, setDisplaySelect] = useState<boolean>(false);
   const router = useRouter();
 
   const handleCrearLista = () => {
@@ -45,7 +46,20 @@ export default function BarraDeNavegacion() {
       {listas.length > 1 && seleccion !== "admin" &&(
         <div className="flex gap-4 items-center pl-2">
           <div className="border-l p-3 h-5 self-center"> </div>
-          <FullScreenSelect listas={listas} listaActivaId={listaActivaId || ''} onChange={(e) => setListaActivaId(e)} />
+          <button
+            onClick={() => setDisplaySelect(true)}
+            className={`flex gap-2 items-center text-xs hover:opacity-50`}
+          >
+            <p className="hidden sm:inline">Presentaciones</p> 
+            <Icon 
+              name="select"
+              size="xl" 
+              className="fill-primary text-transparent" 
+            />
+          </button>
+          {displaySelect &&  (
+            <FullScreenSelect items={listas} label={"Presentaciones"} defaultItemId={listaActivaId || ''} onChange={(e) => {setListaActivaId(e); setDisplaySelect(false)}} onClose={() => setDisplaySelect(false)}/>
+          )}
         </div>
       )}
       <div className="flex gap-3 ml-auto">

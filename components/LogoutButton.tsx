@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser } from '@/context/UserContext';
-import { Icon } from './SvgIcons';
+import { Icon } from './ui/SvgIcons';
 
 export default function LogoutButton() {
   const { isAuthenticated, loading, signOut, authReady, } = useUser();

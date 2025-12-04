@@ -1,7 +1,7 @@
 "use client";
 
-import { usePresentation } from "../context/PresentationContext";
-import { Icon } from "./SvgIcons";
+import { usePresentation } from "../../context/PresentationContext";
+import { Icon } from "../ui/SvgIcons";
 import { useMediaQuery } from "react-responsive";
 import { useUser } from '@/context/UserContext';
 import React, { useState, useEffect } from "react";

@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Icon } from './SvgIcons';
+import { Icon } from '../ui/SvgIcons';
 import { Canto } from '@/types/supabase';
 
 interface BuscadorCantosProps {

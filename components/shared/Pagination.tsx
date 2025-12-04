@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Icon } from './SvgIcons';
+import { Icon } from '../ui/SvgIcons';
 interface PaginacionProps {
   paginaActual: number;
   totalPaginas: number;

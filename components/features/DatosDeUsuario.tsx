@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
-import RemainingHeightDiv from '@/components/RemainingHeightDiv';
-import { Icon } from "./SvgIcons";
+import RemainingHeightDiv from '@/components/ui/RemainingHeightDiv';
+import { Icon } from "../ui/SvgIcons";
 
 export default function DatosDeUsuario() {
     const { user, setUser } = useUser(); // Asegúrate de que `setUser` esté disponible en el contexto
@@ -109,6 +109,18 @@ export default function DatosDeUsuario() {
             return;
         }
         try {
+            // Primero intentamos reautenticar al usuario con la contraseña actual
+            const { error: signinError } = await supabase.auth.signInWithPassword({
+                email: user.email, // utilizando el correo actual del usuario
+                password: password, // contraseña actual proporcionada por el usuario
+            });
+
+            if (signinError) {
+                toast.error('La contraseña actual es incorrecta');
+                console.error('Current password verification failed:', signinError);
+                return;
+            }
+
             const { data, error } = await supabase.auth.updateUser({
                 password: nuevoPass,
             });

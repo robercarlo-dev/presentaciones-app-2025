@@ -52,8 +52,11 @@ export default function MenuDeUsuario() {
                         <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/user")}>
                             Administrar cuenta
                         </button>
-                        <button className="bg-background text-gray-800">
-                            Apariencia
+                        <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/admin/tarjetas")}>
+                            Crear tarjetas
+                        </button>
+                        <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/admin/tarjetas/modificar")}>
+                            Modificar tarjetas
                         </button>
                     </div>
                     <div className="p-4">

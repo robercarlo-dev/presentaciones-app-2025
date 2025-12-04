@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect} from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/context/UserContext';
 import { useCantos } from '@/hooks/useCantos';
 import { actualizarCanto } from '@/services/cantos';
 import { Canto } from '@/types/supabase';
 import toast from 'react-hot-toast';
-import RemainingHeightDiv from '@/components/RemainingHeightDiv';
-import BuscadorCantos from './BuscadorCantos';
+import RemainingHeightDiv from '@/components/ui/RemainingHeightDiv';
+import BuscadorCantos from '../shared/BuscadorCantos';
 
 export default function ModificarCantos() {
   const { user } = useUser();

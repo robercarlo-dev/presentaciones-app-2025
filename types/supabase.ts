@@ -20,4 +20,12 @@ export type Lista = {
     usuario_id: string;
     fecha_creacion: string;
   };
+
+export type Tarjeta = {
+    id: string;
+    titulo: string;
+    imagen_urls: string[];
+    nombre: string;
+    tipo: string;
+  };
   
