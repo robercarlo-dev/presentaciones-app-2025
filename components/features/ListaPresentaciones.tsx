@@ -1,7 +1,6 @@
-//Component for managing and displaying a presentation list with drag-and-drop functionality
 "use client";
 
-import { useState, useOptimistic, startTransition } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { usePresentation } from '../../context/PresentationContext';
 import { useMediaQuery } from "react-responsive";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent} from '@dnd-kit/core';
@@ -12,16 +11,16 @@ import { Icon } from '../ui/SvgIcons';
 import PptxGenJS from 'pptxgenjs';
 import FullScreenSelect from '../features/FullScreenSelect';
 import { useTarjetas } from '@/hooks/useTarjetas';
-import { Tarjeta, Canto } from '@/types/supabase';
+import { ElementoCanto, ElementoTarjeta } from '@/types/ListaPresentacion';
 
 type Props = {
   listaId: string;
 };
 
 const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
-  const { listas, editarNombreLista, eliminarLista, removerCantoDeLista, reordenarCantosEnLista, guardarListaBorrador } = usePresentation();
+  const { listas, agregarElementoALista, editarNombreLista, eliminarLista, removerCantoDeLista, reordenarElementosEnLista, guardarListaBorrador } = usePresentation();
   const lista = listas.find((l) => l.id === listaId);
-  const { data: tarjetas } = useTarjetas();
+  const { data: tarjetas, isPending: tarjetasPending } = useTarjetas();
 
   const [editandoNombre, setEditandoNombre] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState(lista?.nombre || '');
@@ -29,47 +28,75 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
   const is2XLDesktop = useMediaQuery({ minWidth: 1536 });
   
   const [displaySelect, setDisplaySelect] = useState<boolean>(false);
-  const [tarjetasEnLista, setTarjetasEnLista] = useState<Tarjeta[]>([]);
-  const [itemsEnLista, setItemsEnLista] = useState<(Tarjeta | Canto)[]>([]);
+  const [itemsEnLista, setItemsEnLista] = useState<(ElementoTarjeta | ElementoCanto)[]>([]);
 
   if (!lista) return null;
 
-  // Estado optimista para los cantos
-  const [optimisticCantos, addOptimistic] = useOptimistic(
-    lista?.cantos || [],
-    (state, newCantos: typeof lista.cantos) => newCantos
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Aumenta la distancia mínima para activar el drag
+      },
+    })
   );
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  // Función para combinar y ordenar items
+  const combineAndSortItems = useCallback((cantos: ElementoCanto[], tarjetasList: ElementoTarjeta[]) => {
+    return [...cantos, ...(tarjetasList || [])].sort((a, b) => a.numero - b.numero);
+  }, []);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  useEffect(() => {
+    if (!tarjetasPending) {
+      const combinedItems = combineAndSortItems(lista.cantos, lista.tarjetas || []);
+      setItemsEnLista(combinedItems);
+    }
+  }, [lista.cantos, lista.tarjetas, tarjetasPending, combineAndSortItems]);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = lista.cantos.findIndex((item) => item.id === active.id);
-    const newIndex = lista.cantos.findIndex((item) => item.id === over.id);
+    const oldIndex = itemsEnLista.findIndex((item) => 
+      ("canto" in item) ? item.canto.id === active.id : item.tarjeta.id === active.id
+    );
+    const newIndex = itemsEnLista.findIndex((item) => 
+      ("canto" in item) ? item.canto.id === over.id : item.tarjeta.id === over.id
+    );
     
     if (oldIndex === -1 || newIndex === -1) return;
 
-    // Crear nuevo orden optimista
-    const nuevosCantos = arrayMove(lista.cantos, oldIndex, newIndex);
-    const ordenIds = nuevosCantos.map((c) => c.id);
+    // Actualizar el estado local inmediatamente para evitar parpadeo
+    const nuevosElementos = arrayMove(itemsEnLista, oldIndex, newIndex);
+    
+    // Actualizar números de orden
+    const elementosConNumeros = nuevosElementos.map((elemento, index) => ({
+      ...elemento,
+      numero: index + 1
+    }));
+    
+    setItemsEnLista(elementosConNumeros);
+    
+    // Persistir cambios en el contexto
+    const ordenIds = elementosConNumeros.map((e) => 
+      ("canto" in e) ? e.canto.id : e.tarjeta.id
+    );
+    
+    try {
+      reordenarElementosEnLista(listaId, ordenIds);
+    } catch (error) {
+      console.error("Error al reordenar:", error);
+      // Revertir en caso de error
+      const itemsOriginales = combineAndSortItems(lista.cantos, lista.tarjetas || []);
+      setItemsEnLista(itemsOriginales);
+    }
+  }, [itemsEnLista, listaId, reordenarElementosEnLista, combineAndSortItems, lista.cantos, lista.tarjetas]);
 
-    // Usar startTransition para envolver la actualización optimista
-    startTransition(() => {
-      // Actualización optimista: actualizar UI inmediatamente
-      addOptimistic(nuevosCantos);
-      
-     // Persistir cambios en el contexto (función síncrona)
-     try {
-        reordenarCantosEnLista(listaId, ordenIds);
-      } catch (error) {
-        console.error("Error al reordenar:", error);
-        // Si hay error, la actualización del contexto revertirá el estado
-        // cuando se actualice el contexto global
-      }
-    });
-  };
+  // Para IDs únicos del SortableContext
+  const getItemIds = useCallback(() => {
+    return itemsEnLista.map(elemento => 
+      ("canto" in elemento) ? elemento.canto.id : elemento.tarjeta.id
+    );
+  }, [itemsEnLista]);
 
   const handleGuardarNombre = () => {
     const nombre = nuevoNombre.trim();
@@ -78,18 +105,22 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
       return;
     }
     
-    // También envolver esta actualización en startTransition si usa useOptimistic
-    startTransition(() => {
-      editarNombreLista(listaId, nombre);
-    });
+    editarNombreLista(listaId, nombre);
     setEditandoNombre(false);
   };
 
   const addTarjeta = (tarjetaId: string) => {
     const tarjeta = tarjetas?.find(t => t.id === tarjetaId);
-    if (tarjeta) {
-      setTarjetasEnLista(prev => [...prev, tarjeta]);
+    if (!tarjeta) return;
+
+    const index = itemsEnLista.length + 1;
+    
+    if (lista.id) {
+      agregarElementoALista(lista.id, tarjeta, index);
+      // Actualizar el estado local inmediatamente
+      setItemsEnLista(prev => [...prev, { numero: index, tarjeta }]);
     }
+
     setDisplaySelect(false);
   }
 
@@ -107,12 +138,12 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
   }
   
   const handleDescargar = () => {
-    // Usar los datos actuales del contexto, no los optimistas
+    // Usar los datos actuales del contexto
     const pptx = new PptxGenJS();
-    lista.cantos.forEach((canto) => {
+    lista.cantos.forEach((elemento) => {
       const titleSlide = pptx.addSlide();
       titleSlide.background = { color: '000000', path: 'images/bg-titulos.jpg' };
-      titleSlide.addText(canto.titulo, {
+      titleSlide.addText(elemento.canto.titulo, {
         x: 0,
         y: 1.51,
         h: 2.61,
@@ -123,7 +154,7 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
         align: 'center',
       });
 
-      canto.estrofas.forEach((estrofa, index) => {
+      elemento.canto.estrofas.forEach((estrofa, index) => {
         const slide = pptx.addSlide();
         slide.background = { color: '000000', path: 'images/bg-cantos.jpg' };
 
@@ -168,7 +199,7 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
           align: 'center',
         });
 
-        if (canto.estrofas.length === index + 1) {
+        if (elemento.canto.estrofas.length === index + 1) {
           slide.addText('Fin', {
             x: 9.42,
             y: 5.145,
@@ -217,7 +248,7 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
             <Icon name="select" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
             Tarjetas
           </button>
-          {lista.cantos.length > 0 && (
+          {itemsEnLista.length > 0 && (
             <button onClick={handleDescargar} className='text-background text-xs hover:cursor-pointer hover:opacity-50'>
               <Icon name="download" size={`${ is2XLDesktop ? "xxxl" : isTablet ? "lg" : "xl" }`} className="fill-background text-transparent mb-1 mx-auto drop-shadow-xl" />
               Descargar
@@ -249,14 +280,22 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
           modifiers={[restrictToParentElement]}
           onDragEnd={handleDragEnd}
         >
-          {/* Usamos optimisticCantos en lugar de lista.cantos */}
-          <SortableContext items={optimisticCantos} strategy={verticalListSortingStrategy}>
+          <SortableContext 
+            items={getItemIds()} 
+            strategy={verticalListSortingStrategy}
+          >
             <ul>
-              {optimisticCantos.map((canto) => (
+              {itemsEnLista.map((elemento) => (
                 <DraggableItem
-                  key={canto.id}
-                  canto={canto}
-                  removeCanto={(id) => removerCantoDeLista(listaId, id)}
+                  key={("canto" in elemento) ? elemento.canto.id : elemento.tarjeta.id}
+                  elemento={("canto" in elemento) ? elemento.canto : elemento.tarjeta}
+                  removeElemento={(id) => {
+                    removerCantoDeLista(listaId, id);
+                    // Actualizar estado local
+                    setItemsEnLista(prev => prev.filter(item => 
+                      ("canto" in item) ? item.canto.id !== id : item.tarjeta.id !== id
+                    ));
+                  }}
                 />
               ))}
             </ul>
@@ -266,7 +305,7 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
       {tarjetas && displaySelect && (
         <FullScreenSelect
           items={tarjetas}
-          onChange={(id) => {addTarjeta(id)}}
+          onChange={addTarjeta}
           placeholder='Seleccionar tarjeta'
           onClose={() => setDisplaySelect(false)}
         />

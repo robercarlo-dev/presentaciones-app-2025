@@ -4,15 +4,16 @@
 import { createContext, useContext, useMemo, useState, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/context/UserContext";
-import { fetchListasConCantos } from "@/lib/queries/listas";
+import { fetchListasConCantosYTarjetas } from "@/lib/queries/listas";
 import { supabase } from "@/lib/supabaseClient";
-import { Canto } from "@/types/supabase";
-import { ListaPresentacion } from "@/types/ListaPresentacion";
+import { Canto, Tarjeta } from "@/types/supabase";
+import { ListaPresentacion, ElementoCanto, ElementoTarjeta } from "@/types/ListaPresentacion";
 import { PresentationContextType } from "../types/PresentationContextType";
-import { guardarListaConCantos } from "@/services/listas";
+import { guardarListaConCantosYTarjetas } from "@/services/listas";
 import { useDraftLists } from "@/hooks/useDraftLists";
 import { useListOperations } from "@/hooks/useListOperations";
 import { useCantos } from "@/hooks/useCantos";
+import { useTarjetas } from "@/hooks/useTarjetas";
 
 const PresentationContext = createContext<PresentationContextType | undefined>(undefined);
 
@@ -21,6 +22,7 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const userId = isAuthenticated && user?.id ? user.id : undefined;
   const queryClient = useQueryClient();
   const { data: cantos, isPending: cantosPending } = useCantos();
+  const { data: tarjetas, isPending: tarjetasPending } = useTarjetas();
 
   // Estados locales
   const [selectedCantos, setSelectedCantos] = useState<Canto[]>([]);
@@ -36,16 +38,16 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
   // Obtener operaciones de listas
   const {
     editListName,
-    addSongToList,
+    addElementToList,
     removeSongFromList,
-    reorderSongsInList
+    reorderElementsInList
   } = createListOperations(isDraft);
 
   // Query para listas del servidor
   const { data: serverLists = [] } = useQuery({
     queryKey: ["listas", userId],
-    queryFn: () => fetchListasConCantos(userId!, cantos || []),
-    enabled: !!userId && !cantosPending,
+    queryFn: () => fetchListasConCantosYTarjetas(userId!, cantos || [], tarjetas || []),
+    enabled: !!userId && !cantosPending && !tarjetasPending,
   });
 
   // Combinar listas
@@ -85,10 +87,23 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
     const draft = drafts.find(l => l.id === draftId);
     if (!draft) throw new Error("No se encontró el borrador");
 
-    const nuevaListaId = await guardarListaConCantos(
+    // Mapear cantos correctamente (corregida la sintaxis del arrow function)
+    const cantosParaGuardar = draft.cantos.map(c => ({
+      id: c.canto.id,
+      numero: c.numero
+    }));
+
+    // Mapear tarjetas (asegurando que incluye el número si existe)
+    const tarjetasParaGuardar = (draft.tarjetas || []).map(t => ({
+      id: t.tarjeta.id,
+      numero: t.numero || 0 // Asegura un valor por defecto si no existe
+    }));
+
+    const nuevaListaId = await guardarListaConCantosYTarjetas(
       draft.nombre,
       userId,
-      draft.cantos.map(c => c.id)
+      cantosParaGuardar,
+      tarjetasParaGuardar
     );
 
     removeDraft(draftId);
@@ -109,23 +124,58 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
     updateDraft(id, draft => ({ ...draft, nombre: newName }));
   };
 
-  const updateDraftAddSong = (id: string, song: Canto) => {
-    updateDraft(id, draft => ({ ...draft, cantos: [...draft.cantos, song] }));
+  // const updateDraftAddSong = (id: string, song: Canto, numero: number) => {
+  //   updateDraft(id, draft => ({ ...draft, cantos: [...draft.cantos, {numero: numero, canto: song }] }));
+  // };
+
+  const updateDraftAddElement = (id: string, element: Canto | Tarjeta, numero: number) => {
+    if ("nombre" in element) {
+      // Es Tarjeta
+      updateDraft(id, draft => ({ ...draft, tarjetas: [...(draft.tarjetas || []), {numero: numero, tarjeta: element }] }));
+    } else {
+      // Es Canto
+      updateDraft(id, draft => ({ ...draft, cantos: [...draft.cantos, {numero: numero, canto: element }] }));
+    }
   };
 
   const updateDraftRemoveSong = (id: string, songId: string) => {
     updateDraft(id, draft => ({
       ...draft,
-      cantos: draft.cantos.filter(c => c.id !== songId)
+      cantos: draft.cantos.filter(c => c.canto.id !== songId)
     }));
   };
 
-  const updateDraftReorderSongs = (id: string, orderIds: string[]) => {
+  // const updateDraftReorderSongs = (id: string, orderIds: string[]) => {
+  //   updateDraft(id, draft => {
+  //     const orderedSongs = orderIds
+  //       .map(cid => draft.cantos.find(c => c.canto.id === cid))
+  //       .filter(Boolean) as ElementoCanto[];
+  //     return { ...draft, cantos: orderedSongs };
+  //   });
+  // };
+
+  const updateDraftReorderElements = (id: string, orderIds: string[]) => {
+    console.log("Reordenando elementos en borrador", id, orderIds);
     updateDraft(id, draft => {
-      const orderedSongs = orderIds
-        .map(cid => draft.cantos.find(c => c.id === cid))
-        .filter(Boolean) as Canto[];
-      return { ...draft, cantos: orderedSongs };
+      // Crear maps para acceso rápido
+      const songMap = new Map(draft.cantos.map(c => [c.canto.id, c]));
+      const cardMap = new Map(draft.tarjetas?.map(t => [t.tarjeta.id, t]));
+      
+      // Procesar todos los IDs en el orden dado
+      const orderedSongs: ElementoCanto[] = [];
+      const orderedCards: ElementoTarjeta[] = [];
+      
+      orderIds.forEach(elementId => {
+        if (songMap.has(elementId)) {
+          orderedSongs.push(songMap.get(elementId)!);
+        } else if (cardMap.has(elementId)) {
+          orderedCards.push(cardMap.get(elementId)!);
+        }
+        // Opcional: manejar IDs no encontrados
+      });
+      console.log("Reordenado - Songs:", orderedSongs, "Cards:", orderedCards);
+      
+      return { ...draft, cantos: orderedSongs, tarjetas: orderedCards };
     });
   };
 
@@ -152,9 +202,9 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
     crearLista,
     eliminarLista,
     editarNombreLista: (id, nombre) => editListName(id, nombre, updateDraftName),
-    agregarCantoALista: (id, canto) => addSongToList(id, canto, updateDraftAddSong),
+    agregarElementoALista: (id, element, numero) => addElementToList(id, element, numero, updateDraftAddElement),
     removerCantoDeLista: (id, cantoId) => removeSongFromList(id, cantoId, updateDraftRemoveSong),
-    reordenarCantosEnLista: (id, ordenIds) => reorderSongsInList(id, ordenIds, updateDraftReorderSongs),
+    reordenarElementosEnLista: (id, ordenIds) => reorderElementsInList(id, ordenIds, updateDraftReorderElements),
     guardarListaBorrador,
     revalidateListas,
     addCanto,

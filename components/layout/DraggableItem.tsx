@@ -3,27 +3,27 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Canto } from '@/types/supabase';
+import { Canto, Tarjeta } from '@/types/supabase';
 import { Icon } from '../ui/SvgIcons';
 
-const DraggableItem = ({ canto, removeCanto}: { canto: Canto, removeCanto: (id:string) => void }) => {
-  const { attributes, listeners, setNodeRef, transform } = useSortable({ id: canto.id });
+const DraggableItem = ({ elemento, removeElemento}: { elemento: Canto | Tarjeta, removeElemento: (id:string) => void }) => {
+  const { attributes, listeners, setNodeRef, transform } = useSortable({ id: elemento.id });
   
   const style = {
     transform: CSS.Transform.toString(transform),
   };
 
   return (
-    <li ref={setNodeRef} style={style} className="grid grid-cols-12 mb-1 bg-accent">
+    <li ref={setNodeRef} style={style} className={`grid grid-cols-12 mb-1 ${'nombre' in elemento ? 'bg-secondary text-background' : 'bg-accent text-primary'}`}>
       
-        <div {...attributes} {...listeners} className="text-lg truncate col-span-11 flex items-center text-primary ml-3 cursor-move">
+        <div {...attributes} {...listeners} className="text-lg truncate col-span-11 flex items-center  ml-3 cursor-move">
           <span className="font-light truncate block overflow-hidden whitespace-nowrap">
-            {canto.titulo}
+          {'nombre' in elemento ? elemento.nombre : elemento.titulo}
           </span>
         </div>
 
-        <button onClick={(event) => {event.stopPropagation(); console.log(`Attempting to remove canto with id: ${canto.id}`);
-        removeCanto(canto.id);}} className="cursor-pointer bg-background">
+        <button onClick={(event) => {event.stopPropagation(); console.log(`Attempting to remove elemento with id: ${elemento.id}`);
+        removeElemento(elemento.id);}} className="cursor-pointer bg-background">
           <Icon name="delete" size="xl" className="fill-black text-transparent drop-shadow-xl ml-1 hover:opacity-50" />
         </button>
     </li>

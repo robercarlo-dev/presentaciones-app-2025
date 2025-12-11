@@ -1,5 +1,5 @@
 // Define the type for the Presentation Context
-import { Canto } from '@/types/supabase';
+import { Canto, Tarjeta } from '@/types/supabase';
 import { ListaPresentacion } from './ListaPresentacion';
 
 export type PresentationContextType = {
@@ -12,9 +12,9 @@ export type PresentationContextType = {
     crearLista: (nombre: string) => void;
     eliminarLista: (id: string) => void;
     editarNombreLista: (id: string, nuevoNombre: string) => void;
-    agregarCantoALista: (id: string, canto: Canto) => void;
+    agregarElementoALista: (id: string, element: Canto | Tarjeta, numero: number) => void;
     removerCantoDeLista: (id: string, cantoId: string) => void;
-    reordenarCantosEnLista: (id: string, ordenIds: string[]) => void;
+    reordenarElementosEnLista: (id: string, ordenIds: string[]) => void;
     // Guardar un borrador en DB -> retorna el nuevo id en DB
     guardarListaBorrador: (id: string) => Promise<string>;
 

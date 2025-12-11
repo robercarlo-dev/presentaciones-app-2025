@@ -24,10 +24,10 @@ const ItemCanto: React.FC<CantoProps> = ({ canto }) => {
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   const is2XLDesktop = useMediaQuery({ minWidth: 1536 });
 
-  const { listaActivaId, listas, agregarCantoALista, removerCantoDeLista, setCantoPreview, favoritos, setFavoritos } = usePresentation();
+  const { listaActivaId, listas, agregarElementoALista, removerCantoDeLista, setCantoPreview, favoritos, setFavoritos } = usePresentation();
 
   const listaActiva = listas.find((l) => l.id === listaActivaId);
-  const cantoYaAgregado = listaActiva?.cantos.some((c) => c.id === canto.id);
+  const cantoYaAgregado = listaActiva?.cantos?.some((c) => c.canto.id === canto.id);
   const { user } = useUser();
 
   // Cargar favoritos al iniciar
@@ -38,8 +38,10 @@ const ItemCanto: React.FC<CantoProps> = ({ canto }) => {
   }, [favoritos, canto.id]);
 
   const handleAdd = () => {
+    console.log("listaActiva:", listaActiva);
+    console.log(((listaActiva?.cantos.length || 0) + (listaActiva?.tarjetas?.length || 0) + 1 ?? 1));
     if (listaActivaId && !cantoYaAgregado) {
-      agregarCantoALista(listaActivaId, canto);
+      agregarElementoALista(listaActivaId, canto, ((listaActiva?.cantos.length || 0) + (listaActiva?.tarjetas?.length || 0) + 1 ?? 1));
     }
   };
 
