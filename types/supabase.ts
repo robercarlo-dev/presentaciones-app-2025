@@ -11,6 +11,7 @@ export type Usuario = {
     nombre: string;
     email: string;
     congregacion: string;
+    es_admin: boolean;
   };
 
 

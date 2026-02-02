@@ -124,10 +124,6 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
     updateDraft(id, draft => ({ ...draft, nombre: newName }));
   };
 
-  // const updateDraftAddSong = (id: string, song: Canto, numero: number) => {
-  //   updateDraft(id, draft => ({ ...draft, cantos: [...draft.cantos, {numero: numero, canto: song }] }));
-  // };
-
   const updateDraftAddElement = (id: string, element: Canto | Tarjeta, numero: number) => {
     if ("nombre" in element) {
       // Es Tarjeta
@@ -145,18 +141,17 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
     }));
   };
 
-  // const updateDraftReorderSongs = (id: string, orderIds: string[]) => {
-  //   updateDraft(id, draft => {
-  //     const orderedSongs = orderIds
-  //       .map(cid => draft.cantos.find(c => c.canto.id === cid))
-  //       .filter(Boolean) as ElementoCanto[];
-  //     return { ...draft, cantos: orderedSongs };
-  //   });
-  // };
+  const updateDraftRemoveTarjeta = (id: string, cardId: string) => {
+    updateDraft(id, draft => ({
+      ...draft,
+      tarjetas: draft.tarjetas?.filter(t => t.tarjeta.id !== cardId)
+    }));
+  };
 
   const updateDraftReorderElements = (id: string, orderIds: string[]) => {
     console.log("Reordenando elementos en borrador", id, orderIds);
     updateDraft(id, draft => {
+      console.log("Borrador antes de reordenar:", draft);
       // Crear maps para acceso rápido
       const songMap = new Map(draft.cantos.map(c => [c.canto.id, c]));
       const cardMap = new Map(draft.tarjetas?.map(t => [t.tarjeta.id, t]));
@@ -165,11 +160,13 @@ export const PresentationProvider: React.FC<{ children: ReactNode }> = ({ childr
       const orderedSongs: ElementoCanto[] = [];
       const orderedCards: ElementoTarjeta[] = [];
       
-      orderIds.forEach(elementId => {
+      orderIds.forEach((elementId, index) => {
         if (songMap.has(elementId)) {
-          orderedSongs.push(songMap.get(elementId)!);
+          const song = songMap.get(elementId)!;
+          orderedSongs.push({canto: song.canto, numero: index + 1});
         } else if (cardMap.has(elementId)) {
-          orderedCards.push(cardMap.get(elementId)!);
+          const card = cardMap.get(elementId)!;
+          orderedCards.push({tarjeta: card.tarjeta, numero: index + 1});
         }
         // Opcional: manejar IDs no encontrados
       });

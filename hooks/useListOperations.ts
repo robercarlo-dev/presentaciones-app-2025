@@ -34,6 +34,11 @@ export const useListOperations = (userId?: string) => {
       const cantosOrden = lista.cantos.map((c) => c.numero || 0);
       const tarjetasOrden = lista.tarjetas?.map((t) => t.numero || 0) || [];
       const nombre = lista.nombre;
+
+      console.log(`cantos orden: ${cantosOrden}`);
+      console.log(`tarjetas orden: ${tarjetasOrden}`);
+      console.log(`cantos ids: ${cantoIds}`);
+      console.log(`tarjetas ids: ${tarjetaIds}`);
   
       const { error } = await supabase.rpc("app_actualizar_lista", {
         p_lista_id: id,

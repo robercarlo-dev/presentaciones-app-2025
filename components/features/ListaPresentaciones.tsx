@@ -49,8 +49,19 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
     if (!tarjetasPending) {
       const combinedItems = combineAndSortItems(lista.cantos, lista.tarjetas || []);
       setItemsEnLista(combinedItems);
+      // console.log("Items en lista actualizados:", combinedItems);
     }
   }, [lista.cantos, lista.tarjetas, tarjetasPending, combineAndSortItems]);
+
+  useEffect(() => {
+    // Cambiar el orden de los elementos de la lista al eleminar uno
+    const elementosConNumeros = itemsEnLista.map((elemento, index) => ({
+      ...elemento,
+      numero: index + 1
+    }));
+
+    // console.log("Actualizando números de orden tras eliminación:", elementosConNumeros);
+  }, [itemsEnLista.length]); 
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -138,79 +149,101 @@ const ListaPresentaciones: React.FC<Props> = ({ listaId }) => {
   }
   
   const handleDescargar = () => {
+    console.log("elementos en lista:", itemsEnLista);
     // Usar los datos actuales del contexto
     const pptx = new PptxGenJS();
-    lista.cantos.forEach((elemento) => {
-      const titleSlide = pptx.addSlide();
-      titleSlide.background = { color: '000000', path: 'images/bg-titulos.jpg' };
-      titleSlide.addText(elemento.canto.titulo, {
-        x: 0,
-        y: 1.51,
-        h: 2.61,
-        w: '100%',
-        color: 'FFFFFF',
-        fontSize: 60,
-        bold: true,
-        align: 'center',
-      });
-
-      elemento.canto.estrofas.forEach((estrofa, index) => {
-        const slide = pptx.addSlide();
-        slide.background = { color: '000000', path: 'images/bg-cantos.jpg' };
-
-        slide.addText(`${index + 1}`, {
-          x: 0.08,
-          y: 0,
-          w: 0.5,
-          h: 0.5,
+    itemsEnLista.forEach((elemento) => {
+      if("tarjeta" in elemento) {
+        if (elemento.tarjeta.tipo === 'bg-image') {
+          const tarjeta_bg_slide = pptx.addSlide();
+          tarjeta_bg_slide.background = { color: '000000', path: elemento.tarjeta.imagen_urls[0] };
+        } else if (elemento.tarjeta.tipo === 'title'){
+          const tarjeta_bg_slide = pptx.addSlide();
+          tarjeta_bg_slide.background = { color: '000000' };
+          tarjeta_bg_slide.addText(elemento.tarjeta.titulo, {
+            x: 0,
+            y: 1.51,
+            h: 2.61,
+            w: '100%',
+            color: 'FFFFFF',
+            fontSize: 60,
+            bold: true,
+            align: 'center',
+          });
+        }
+      }
+      else {
+        const titleSlide = pptx.addSlide();
+        titleSlide.background = { color: '000000', path: 'images/bg-titulos.jpg' };
+        titleSlide.addText(elemento.canto.titulo, {
+          x: 0,
+          y: 1.51,
+          h: 2.61,
+          w: '100%',
           color: 'FFFFFF',
-          align: 'left',
+          fontSize: 60,
+          bold: true,
+          align: 'center',
         });
-
-        let fontSize = 50;
-        const minFontSize = 36;
-        const maxCharactersPerLine = 27;
-        const maxLines = 7;
-
-        const linesArray = estrofa.split('\n');
-        let totalLines = 0;
-
-        linesArray.forEach((line) => {
-          totalLines += Math.ceil(line.length / maxCharactersPerLine);
-        });
-
-        while (totalLines > maxLines && fontSize > minFontSize) {
-          fontSize -= 2;
-          totalLines = 0;
+  
+        elemento.canto.estrofas.forEach((estrofa, index) => {
+          const slide = pptx.addSlide();
+          slide.background = { color: '000000', path: 'images/bg-cantos.jpg' };
+  
+          slide.addText(`${index + 1}`, {
+            x: 0.08,
+            y: 0,
+            w: 0.5,
+            h: 0.5,
+            color: 'FFFFFF',
+            align: 'left',
+          });
+  
+          let fontSize = 50;
+          const minFontSize = 36;
+          const maxCharactersPerLine = 27;
+          const maxLines = 7;
+  
+          const linesArray = estrofa.split('\n');
+          let totalLines = 0;
+  
           linesArray.forEach((line) => {
             totalLines += Math.ceil(line.length / maxCharactersPerLine);
           });
-        }
-
-        slide.addText(estrofa, {
-          isTextBox: true,
-          fit: 'shrink',
-          x: 0,
-          y: 0,
-          w: '100%',
-          h: '100%',
-          fontSize: fontSize,
-          color: 'FFFFFF',
-          align: 'center',
-        });
-
-        if (elemento.canto.estrofas.length === index + 1) {
-          slide.addText('Fin', {
-            x: 9.42,
-            y: 5.145,
-            w: 0.54,
-            h: 0.42,
+  
+          while (totalLines > maxLines && fontSize > minFontSize) {
+            fontSize -= 2;
+            totalLines = 0;
+            linesArray.forEach((line) => {
+              totalLines += Math.ceil(line.length / maxCharactersPerLine);
+            });
+          }
+  
+          slide.addText(estrofa, {
+            isTextBox: true,
+            fit: 'shrink',
+            x: 0,
+            y: 0,
+            w: '100%',
+            h: '100%',
+            fontSize: fontSize,
             color: 'FFFFFF',
-            italic: true,
-            align: 'left',
+            align: 'center',
           });
-        }
-      });
+  
+          if (elemento.canto.estrofas.length === index + 1) {
+            slide.addText('Fin', {
+              x: 9.42,
+              y: 5.145,
+              w: 0.54,
+              h: 0.42,
+              color: 'FFFFFF',
+              italic: true,
+              align: 'left',
+            });
+          }
+        });
+      }
     });
 
     pptx.writeFile({ fileName: `${lista.nombre || 'presentacion'}.pptx` });

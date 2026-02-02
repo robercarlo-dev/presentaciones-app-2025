@@ -29,7 +29,7 @@ async function obtenerCantosDeLista(listaId: string, cantos: Canto[]): Promise<E
     };
   });
 
-  console.log("Elementos de canto obtenidos:", elementosCanto);
+  // console.log("Elementos de canto obtenidos:", elementosCanto);
 
   return elementosCanto;
 

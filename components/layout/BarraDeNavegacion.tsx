@@ -11,7 +11,7 @@ import { Icon } from '../ui/SvgIcons';
 import FullScreenSelect from '../features/FullScreenSelect';
 
 export default function BarraDeNavegacion() {
-  const { isAuthenticated } = useUser();
+  const { user, isAuthenticated } = useUser();
   const { listas, crearLista, listaActivaId, setListaActivaId, setNuevaPresentacion } = usePresentation()
   const [seleccion, setSeleccion] = useState<string>("inicio");
   const [displaySelect, setDisplaySelect] = useState<boolean>(false);
@@ -35,7 +35,7 @@ export default function BarraDeNavegacion() {
   }
 
   return (
-    <div className="flex items-center gap-4 fixed top-0 bg-background w-full z-50 px-2 py-1">
+    <div className="flex items-center gap-4 fixed top-0 bg-background w-full z-50 px-2 py-1 border-b border-primary">
       {/* // Logo y enlace a la página principal */}
         <Link href="/" className="flex items-center text-xs hover:opacity-50" onClick={() => setSeleccion("inicio")}>
           <Image alt="logo" src="/proyector_icon.svg" width={30} height={30} className="mx-2" />
@@ -77,14 +77,19 @@ export default function BarraDeNavegacion() {
         )}
 
         {/* // Botón para administrar cantos */}
-        <div className="flex items-center gap-2 ml-auto mr-2" title="Administrar cantos">
-          <button
-            onClick={handleAdmin}  className="flex gap-2 items-center text-xs hover:opacity-50">
-              <p className="hidden sm:inline">Edición</p>
-            <Icon name="admin" size="xl" className="fill-primary text-transparent hover:opacity-50" />
-          </button>
-        </div>
-        <div className="border-l h-5 self-center"></div>
+        {user?.es_admin && (
+          <>
+            <div className="flex items-center gap-2 ml-auto mr-2" title="Administrar cantos">
+              <button
+                onClick={handleAdmin}  className="flex gap-2 items-center text-xs hover:opacity-50">
+                  <p className="hidden sm:inline">Edición</p>
+                <Icon name="admin" size="xl" className="fill-primary text-transparent hover:opacity-50" />
+              </button>
+            </div> 
+            <div className="border-l h-5 self-center"></div>
+          </>
+        )}
+        
         {/* // Menú de usuario */}  
         <MenuDeUsuario /> 
       </div>

@@ -49,15 +49,22 @@ export default function MenuDeUsuario() {
                     </div>
                     <hr className="border-t border-primary mx-4" />
                     <div className="flex flex-col gap-4 text-center mt-4">
+                        
+                            
                         <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/user")}>
                             Administrar cuenta
                         </button>
-                        <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/admin/tarjetas")}>
-                            Crear tarjetas
-                        </button>
-                        <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/admin/tarjetas/modificar")}>
-                            Modificar tarjetas
-                        </button>
+                        {user?.es_admin && (
+                        <>
+                            <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/admin/tarjetas")}>
+                                Crear tarjetas
+                            </button>
+                            <button className="bg-background text-gray-800 cursor-pointer hover:text-primary" onClick={() => router.push("/admin/tarjetas/modificar")}>
+                                Modificar tarjetas
+                            </button>
+                        </>
+                        )}
+        
                     </div>
                     <div className="p-4">
                         <LogoutButton />
