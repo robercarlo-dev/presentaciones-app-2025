@@ -38,10 +38,8 @@ const ItemCanto: React.FC<CantoProps> = ({ canto }) => {
   }, [favoritos, canto.id]);
 
   const handleAdd = () => {
-    console.log("listaActiva:", listaActiva);
-    console.log(((listaActiva?.cantos.length || 0) + (listaActiva?.tarjetas?.length || 0) + 1 ?? 1));
     if (listaActivaId && !cantoYaAgregado) {
-      agregarElementoALista(listaActivaId, canto, ((listaActiva?.cantos.length || 0) + (listaActiva?.tarjetas?.length || 0) + 1 ?? 1));
+      agregarElementoALista(listaActivaId, canto, ((listaActiva?.cantos?.length || 0) + (listaActiva?.tarjetas?.length || 0) + 1));
     }
   };
 
