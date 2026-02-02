@@ -39,6 +39,7 @@ const ItemCanto: React.FC<CantoProps> = ({ canto }) => {
 
   const handleAdd = () => {
     if (listaActivaId && !cantoYaAgregado) {
+      console.log("Agregando canto a la lista:", canto.id);
       agregarElementoALista(listaActivaId, canto, ((listaActiva?.cantos?.length || 0) + (listaActiva?.tarjetas?.length || 0) + 1));
     }
   };
